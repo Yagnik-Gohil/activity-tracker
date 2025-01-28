@@ -85,6 +85,10 @@ export function TaskList(): JSX.Element {
     setExpandedTaskId(expandedTaskId === id ? null : id)
   }
 
+  const handleStatusChange = (id: number, newStatus: Status): void => {
+    setTasks(tasks.map((task) => (task.id === id ? { ...task, status: newStatus } : task)))
+  }
+
   useEffect(() => {
     // Here you would typically fetch tasks for the specific project
     console.log(`Fetching tasks for project ${projectId}`)
@@ -186,17 +190,25 @@ export function TaskList(): JSX.Element {
                     <div className="font-medium">{task.title}</div>
                   </td>
                   <td className="py-3 px-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                    <select
+                      value={task.status}
+                      onChange={(e) => {
+                        e.stopPropagation()
+                        handleStatusChange(task.id, e.target.value as Status)
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className={`px-2 py-1 text-xs font-medium rounded-full border-none focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                         task.status === 'Todo'
-                          ? 'bg-yellow-100 text-yellow-700'
+                          ? 'bg-yellow-100 text-yellow-700 focus:ring-yellow-500'
                           : task.status === 'In Progress'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-green-100 text-green-700'
+                            ? 'bg-blue-100 text-blue-700 focus:ring-blue-500'
+                            : 'bg-green-100 text-green-700 focus:ring-green-500'
                       }`}
                     >
-                      {task.status}
-                    </span>
+                      <option value="Todo">Todo</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Completed">Completed</option>
+                    </select>
                   </td>
                   <td className="py-3 px-4 whitespace-nowrap text-gray-600">{task.created}</td>
                 </tr>
