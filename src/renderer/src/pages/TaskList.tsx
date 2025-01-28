@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { ChevronDown, ChevronUp, Edit, Trash2, Plus, ChevronRight } from 'lucide-react'
+import { TaskFormPopup } from '../components/TaskFormPopup'
 
 type Status = 'Todo' | 'In Progress' | 'Completed'
 type SortKey = 'title' | 'created' | 'status'
@@ -48,6 +49,8 @@ export function TaskList(): JSX.Element {
   const [statusFilter, setStatusFilter] = useState<Status | 'All'>('All')
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [isTaskFormOpen, setIsTaskFormOpen] = useState(false)
 
   const handleSort = (key: SortKey): void => {
     if (key === sortKey) {
@@ -59,26 +62,45 @@ export function TaskList(): JSX.Element {
   }
 
   const filteredAndSortedTasks = tasks
-    .filter(
-      (task) =>
-        (statusFilter === 'All' || task.status === statusFilter) &&
-        (task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          task.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
+    .filter((task) => {
+      const matchesStatus = statusFilter === 'All' || task.status === statusFilter
+      const matchesSearch =
+        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.description.toLowerCase().includes(searchTerm.toLowerCase())
+      return matchesStatus && matchesSearch
+    })
     .sort((a, b) => {
       if (a[sortKey] < b[sortKey]) return sortOrder === 'asc' ? -1 : 1
       if (a[sortKey] > b[sortKey]) return sortOrder === 'asc' ? 1 : -1
       return 0
     })
 
-  const handleEdit = (id: number): void => {
-    // Implement edit functionality
-    console.log('Edit task', id)
+  const handleAddTask = (): void => {
+    setEditingTask(null)
+    setIsTaskFormOpen(true)
   }
 
-  const handleDelete = (id: number): void => {
+  const handleEditTask = (task: Task): void => {
+    setEditingTask(task)
+    setIsTaskFormOpen(true)
+  }
+
+  const handleDeleteTask = (id: number): void => {
     setTasks(tasks.filter((task) => task.id !== id))
     setExpandedTaskId(null)
+  }
+
+  const handleSaveTask = (taskData: Omit<Task, 'id' | 'created'>): void => {
+    if (editingTask) {
+      setTasks(tasks.map((task) => (task.id === editingTask.id ? { ...task, ...taskData } : task)))
+    } else {
+      const newTask: Task = {
+        ...taskData,
+        id: Math.max(...tasks.map((t) => t.id)) + 1,
+        created: new Date().toISOString().split('T')[0]
+      }
+      setTasks([...tasks, newTask])
+    }
   }
 
   const toggleTaskExpand = (id: number): void => {
@@ -100,12 +122,15 @@ export function TaskList(): JSX.Element {
       <div className="p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Tasks for Project {projectId}</h1>
-          <button className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+          <button
+            onClick={handleAddTask}
+            className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
             <Plus className="w-4 h-4 mr-2" />
             New Task
           </button>
         </div>
-        <div className="flex space-x-4">
+        <div className="flex flex-wrap gap-4">
           <input
             type="text"
             placeholder="Search tasks..."
@@ -226,7 +251,7 @@ export function TaskList(): JSX.Element {
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              handleEdit(task.id)
+                              handleEditTask(task)
                             }}
                             className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded"
                           >
@@ -235,7 +260,7 @@ export function TaskList(): JSX.Element {
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              handleDelete(task.id)
+                              handleDeleteTask(task.id)
                             }}
                             className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded"
                           >
@@ -251,6 +276,12 @@ export function TaskList(): JSX.Element {
           </tbody>
         </table>
       </div>
+      <TaskFormPopup
+        task={editingTask}
+        isOpen={isTaskFormOpen}
+        onClose={() => setIsTaskFormOpen(false)}
+        onSave={handleSaveTask}
+      />
     </div>
   )
 }
