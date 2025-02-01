@@ -1,17 +1,17 @@
 /**
- * Type definition for the success response
+ * Type definition for the success response with a generic type for the data.
  */
-export interface SuccessResponse {
+export interface SuccessResponse<T = unknown> {
   status: 1
   message: string
-  data: unknown
+  data: T
 }
 
 /**
- * Type definition for the error response
+ * Type definition for the error response with a generic type for the data.
  */
-export interface ErrorResponse {
+export interface ErrorResponse<T = unknown> {
   status: 0
   message: string
-  data: unknown
+  data: T
 }

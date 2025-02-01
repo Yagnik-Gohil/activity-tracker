@@ -5,10 +5,10 @@ import { ErrorResponse, SuccessResponse } from './interface'
 /**
  * Standard success response
  * @param {string} message - The success message
- * @param {any} data - The data returned from the operation
- * @returns {SuccessResponse} - Formatted response for success
+ * @param {T} data - The data returned from the operation (dynamic type)
+ * @returns {SuccessResponse<T>} - Formatted response for success
  */
-export const successResponse = (message: string, data: unknown = {}): SuccessResponse => {
+export const successResponse = <T>(message: string, data: T = {} as T): SuccessResponse<T> => {
   return {
     status: 1,
     message,
@@ -19,10 +19,10 @@ export const successResponse = (message: string, data: unknown = {}): SuccessRes
 /**
  * Standard error response
  * @param {string} message - The error message
- * @param {any} data - Optional error data (default is an empty object)
- * @returns {ErrorResponse} - Formatted response for error
+ * @param {T} data - Optional error data (default is an empty object)
+ * @returns {ErrorResponse<T>} - Formatted response for error
  */
-export const errorResponse = (message: string, data: unknown = {}): ErrorResponse => {
+export const errorResponse = <T>(message: string, data: T = {} as T): ErrorResponse<T> => {
   return {
     status: 0,
     message,

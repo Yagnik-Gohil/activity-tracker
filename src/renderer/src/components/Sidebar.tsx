@@ -1,22 +1,38 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { TimerWidget } from './TimerWidget'
 import { AddProjectPopup } from './AddProjectPopup'
+import projectAPI from '@renderer/api/projectAPI'
+import { IProject } from '@renderer/utils/interface'
 
 export function Sidebar(): JSX.Element {
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false)
-  const [projects, setProjects] = useState([
-    { id: 1, name: 'Project A' },
-    { id: 2, name: 'Project B' },
-    { id: 3, name: 'Project C' }
-  ])
+  const [projects, setProjects] = useState<IProject[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch projects from API on mount
+  useEffect(() => {
+    const fetchProjects = async (): Promise<void> => {
+      const projectList = await projectAPI.getProjects()
+      setProjects(projectList)
+      setLoading(false)
+    }
+
+    fetchProjects()
+  }, [])
+
+  // Callback for adding a new project
+  const handleProjectAdded = async (): Promise<void> => {
+    const updatedProjects = await projectAPI.getProjects()
+    setProjects(updatedProjects)
+  }
 
   return (
     <div className="w-80 border-r h-full flex flex-col bg-white">
       <div className="p-4 space-y-4">
         <TimerWidget />
         <Link
-          to="/dashboard"
+          to="/"
           className="flex items-center px-3 py-2 rounded hover:bg-gray-100 transition-colors"
         >
           <svg
@@ -39,7 +55,7 @@ export function Sidebar(): JSX.Element {
           Dashboard
         </Link>
       </div>
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden flex flex-col">
         <div className="px-4 py-2 flex justify-between items-center">
           <h2 className="text-sm font-semibold">Projects</h2>
           <button
@@ -62,21 +78,31 @@ export function Sidebar(): JSX.Element {
             </svg>
           </button>
         </div>
-        <div className="overflow-y-auto h-full">
+        <div className="overflow-y-auto h-full scrollbar-thin">
           <div className="space-y-1 p-2">
-            {projects.map((project) => (
-              <Link
-                key={project.id}
-                to={`/project/${project.id}`}
-                className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors"
-              >
-                {project.name}
-              </Link>
-            ))}
+            {loading ? (
+              <p className="text-gray-500 text-sm px-3">Loading projects...</p>
+            ) : projects.length === 0 ? (
+              <p className="text-gray-500 text-sm px-3">No projects found</p>
+            ) : (
+              projects.map((project) => (
+                <Link
+                  key={project.id}
+                  to={`/project/${project.id}`}
+                  className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors"
+                >
+                  {project.name}
+                </Link>
+              ))
+            )}
           </div>
         </div>
       </div>
-      <AddProjectPopup isOpen={isAddProjectOpen} onClose={() => setIsAddProjectOpen(false)} />
+      <AddProjectPopup
+        isOpen={isAddProjectOpen}
+        onClose={() => setIsAddProjectOpen(false)}
+        onProjectAdded={handleProjectAdded} // Refresh projects after adding
+      />
     </div>
   )
 }

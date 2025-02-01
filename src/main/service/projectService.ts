@@ -17,7 +17,7 @@ export const addProject = async (name: string): Promise<Project> => {
  * @returns {Promise<Project[]>} - List of all projects with their tasks.
  */
 export const getProjects = async (): Promise<Project[]> => {
-  return await AppDataSource.getRepository(Project).find({ relations: ['tasks'] })
+  return await AppDataSource.getRepository(Project).find()
 }
 
 /**

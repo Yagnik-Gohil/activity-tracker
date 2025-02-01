@@ -1,30 +1,38 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Edit2, Trash2 } from 'lucide-react'
-
-interface Project {
-  id: number
-  name: string
-}
+import { IProject } from '@renderer/utils/interface'
+import projectAPI from '@renderer/api/projectAPI'
 
 export function Settings(): JSX.Element {
-  const [projects, setProjects] = useState<Project[]>([
-    { id: 1, name: 'Project A' },
-    { id: 2, name: 'Project B' },
-    { id: 3, name: 'Project C' }
-  ])
-  const [editingProject, setEditingProject] = useState<Project | null>(null)
+  const [projects, setProjects] = useState<IProject[]>([])
+  const [editingProject, setEditingProject] = useState<IProject | null>(null)
 
-  const handleEditProject = (project: Project): void => {
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+
+  const fetchProjects = async (): Promise<void> => {
+    const projectsData = await projectAPI.getProjects()
+    setProjects(projectsData)
+  }
+
+  const handleEditProject = (project: IProject): void => {
     setEditingProject(project)
   }
 
-  const handleSaveProject = (id: number, newName: string): void => {
-    setProjects(projects.map((p) => (p.id === id ? { ...p, name: newName } : p)))
-    setEditingProject(null)
+  const handleSaveProject = async (id: number, newName: string): Promise<void> => {
+    const updatedProject = await projectAPI.updateProject(id, newName)
+    if (updatedProject) {
+      setProjects(projects.map((p) => (p.id === id ? { ...p, name: newName } : p)))
+      setEditingProject(null)
+    }
   }
 
-  const handleDeleteProject = (id: number): void => {
-    setProjects(projects.filter((p) => p.id !== id))
+  const handleDeleteProject = async (id: number): Promise<void> => {
+    const isDeleted = await projectAPI.deleteProject(id)
+    if (isDeleted) {
+      setProjects(projects.filter((p) => p.id !== id))
+    }
   }
 
   return (
