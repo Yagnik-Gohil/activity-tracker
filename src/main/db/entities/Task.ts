@@ -1,14 +1,14 @@
 import { Entity, Column, ManyToOne } from 'typeorm'
 import { Project } from './Project'
 import { DefaultEntity } from './DefaultEntity'
-import { TaskStatus } from '../../enum'
+import { TaskStatus } from '../../utils/enum'
 
 @Entity()
 export class Task extends DefaultEntity {
   @Column('varying character')
   name: string
 
-  @Column('text')
+  @Column({ type: 'text', nullable: true })
   description: string
 
   @Column({ type: 'varying character', default: TaskStatus.TODO })

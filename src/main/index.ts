@@ -1,9 +1,12 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { initializeDB } from './db/connection'
-import { addProject } from './service/projectService'
+
+// Import your handler files here
+import './handlers/projectHandlers' // Import project-related handlers
+import './handlers/taskHandlers' // Import task-related handlers
 
 let mainWindow: BrowserWindow | null = null
 
@@ -61,18 +64,6 @@ app.whenReady().then(async () => {
   })
 })
 
-// IPC Example (Replace with real handlers)
-ipcMain.on('ping', (event) => {
-  console.log('pong')
-  event.reply('pong-response', 'pong')
-})
-
 app.on('window-all-closed', () => {
   app.quit()
-})
-
-// Create a new project
-ipcMain.handle('create-project', async (_, name) => {
-  const newProject = addProject(name)
-  return newProject
 })

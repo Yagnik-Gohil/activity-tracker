@@ -5,6 +5,7 @@ import fs from 'fs'
 import path from 'path'
 import { Project } from './entities/Project'
 import { Task } from './entities/Task'
+import { Activity } from './entities/Activity'
 
 // Function to ensure database directory exists
 function ensureDBDirectory(): string {
@@ -22,7 +23,7 @@ const databasePath = ensureDBDirectory()
 export const AppDataSource = new DataSource({
   type: 'sqlite',
   database: databasePath,
-  entities: [Project, Task],
+  entities: [Project, Task, Activity],
   synchronize: true,
   logging: false
 })
