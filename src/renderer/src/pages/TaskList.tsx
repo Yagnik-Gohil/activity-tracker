@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 import { ChevronDown, ChevronUp, Edit, Trash2, Plus, ChevronRight } from 'lucide-react'
 import { TaskFormPopup } from '../components/TaskFormPopup'
 import { ITask, TaskStatus } from '@renderer/utils/interface'
@@ -8,6 +8,9 @@ import taskAPI from '@renderer/api/taskAPI'
 type SortKey = 'name' | 'created_at' | 'status'
 
 export function TaskList(): JSX.Element {
+
+  const location = useLocation()
+
   const { projectId } = useParams<{ projectId: string }>()
   const [tasks, setTasks] = useState<ITask[]>([])
   const [sortKey, setSortKey] = useState<SortKey>('name')
@@ -120,7 +123,7 @@ export function TaskList(): JSX.Element {
     <div className="h-full flex flex-col">
       <div className="p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Tasks for Project {projectId}</h1>
+          <h1 className="text-2xl font-semibold">Tasks for {location.state}</h1>
           <button
             onClick={handleAddTask}
             className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom' // Import useLocation
 import { TimerWidget } from './TimerWidget'
 import { AddProjectPopup } from './AddProjectPopup'
 import projectAPI from '@renderer/api/projectAPI'
@@ -9,6 +9,7 @@ export function Sidebar(): JSX.Element {
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false)
   const [projects, setProjects] = useState<IProject[]>([])
   const [loading, setLoading] = useState(true)
+  const location = useLocation() // Access current location
 
   // Fetch projects from API on mount
   useEffect(() => {
@@ -27,13 +28,20 @@ export function Sidebar(): JSX.Element {
     setProjects(updatedProjects)
   }
 
+  // Function to check if the current path matches the project link
+  const isActive = (path: string): boolean => {
+    return location.pathname === path
+  }
+
   return (
     <div className="w-80 border-r h-full flex flex-col bg-white">
       <div className="p-4 space-y-4">
         <TimerWidget />
         <Link
           to="/"
-          className="flex items-center px-3 py-2 rounded hover:bg-gray-100 transition-colors"
+          className={`flex items-center px-3 py-2 rounded transition-colors ${
+            isActive('/') ? 'bg-gray-100 text-gray-900' : 'hover:bg-gray-100'
+          }`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -89,7 +97,12 @@ export function Sidebar(): JSX.Element {
                 <Link
                   key={project.id}
                   to={`/project/${project.id}`}
-                  className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors"
+                  state={project.name}
+                  className={`block w-full text-left px-3 py-2 rounded transition-colors ${
+                    isActive(`/project/${project.id}`)
+                      ? 'bg-gray-100 text-gray-900'
+                      : 'hover:bg-gray-100'
+                  }`}
                 >
                   {project.name}
                 </Link>
