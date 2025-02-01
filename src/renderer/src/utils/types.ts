@@ -1,4 +1,4 @@
-import { IProject, ITask, IResponse } from './interface'
+import { IProject, ITask, IResponse, TaskStatus } from './interface'
 
 declare global {
   interface Window {
@@ -6,10 +6,20 @@ declare global {
       getProjects: () => Promise<IResponse<IProject[]>>
       createProject: (name: string) => Promise<IResponse<IProject>>
       getTasks: (projectId: number) => Promise<IResponse<ITask[]>>
-      createTask: (projectId: number, taskName: string) => Promise<IResponse<ITask>>
+      createTask: (
+        projectId: number,
+        taskName: string,
+        description: string,
+        status: TaskStatus
+      ) => Promise<IResponse<ITask>>
       updateProject: (id: number, name: string) => Promise<IResponse<IProject>>
       deleteProject: (id: number) => Promise<IResponse<boolean>>
-      updateTask: (taskId: number, name: string) => Promise<IResponse<ITask>>
+      updateTask: (
+        taskId: number,
+        name: string,
+        description: string,
+        status: TaskStatus
+      ) => Promise<IResponse<ITask>>
       deleteTask: (taskId: number) => Promise<IResponse<boolean>>
     }
   }

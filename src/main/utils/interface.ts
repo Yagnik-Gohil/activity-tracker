@@ -1,3 +1,5 @@
+import { TaskStatus } from "./enum"
+
 /**
  * Type definition for the success response with a generic type for the data.
  */
@@ -14,4 +16,11 @@ export interface ErrorResponse<T = unknown> {
   status: 0
   message: string
   data: T
+}
+
+export interface IAddTask {
+  projectId: number
+  name: string
+  description: string
+  status: TaskStatus
 }

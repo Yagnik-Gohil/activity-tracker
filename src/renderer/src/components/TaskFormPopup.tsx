@@ -1,109 +1,90 @@
-import type React from 'react'
-import { useState, useEffect } from 'react'
-
-interface Task {
-  id: number
-  title: string
-  description: string
-  created: string
-  status: 'Todo' | 'In Progress' | 'Completed'
-}
+import React, { useState, useEffect } from 'react'
+import { ITask, TaskStatus } from '@renderer/utils/interface'
 
 interface TaskFormPopupProps {
-  task: Task | null
   isOpen: boolean
+  task: ITask | null
+  onSave: (taskData: Omit<ITask, 'id' | 'created_at'>) => void
   onClose: () => void
-  onSave: (task: Omit<Task, 'id' | 'created'>) => void
 }
 
 export function TaskFormPopup({
-  task,
   isOpen,
-  onClose,
-  onSave
+  task,
+  onSave,
+  onClose
 }: TaskFormPopupProps): JSX.Element | null {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [status, setStatus] = useState<Task['status']>('Todo')
+  const [name, setName] = useState(task?.name || '')
+  const [description, setDescription] = useState(task?.description || '')
+  const [status, setStatus] = useState<TaskStatus>(task?.status || TaskStatus.TODO) // Default to 'TODO'
 
   useEffect(() => {
     if (task) {
-      setTitle(task.title)
+      setName(task.name)
       setDescription(task.description)
       setStatus(task.status)
-    } else {
-      setTitle('')
-      setDescription('')
-      setStatus('Todo')
     }
   }, [task])
 
-  if (!isOpen) return null
-
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault()
-    onSave({ title, description, status })
-    onClose()
+    onSave({ name, description, status }) // Send the data on save
   }
 
+  if (!isOpen) return null
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-semibold mb-4">{task ? 'Edit Task' : 'Add New Task'}</h2>
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-1/3">
+        <h2 className="text-xl font-semibold mb-4">{task ? 'Edit Task' : 'Create Task'}</h2>
+        {/* Form submission should be handled here */}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-              Title
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
             <input
               type="text"
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
               required
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Description</label>
             <textarea
-              id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-32"
-              required
+              rows={4}
             />
           </div>
-          <div className="mb-4">
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-              Status
-            </label>
-            <select
-              id="status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value as Task['status'])}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="Todo">Todo</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-            </select>
-          </div>
-          <div className="flex justify-end space-x-2">
+          {!task && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">Status</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as TaskStatus)}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={TaskStatus.TODO}>Todo</option>
+                <option value={TaskStatus.IN_PROGRESS}>In Progress</option>
+                <option value={TaskStatus.COMPLETED}>Completed</option>
+              </select>
+            </div>
+          )}
+          <div className="flex justify-end space-x-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+              className="px-4 py-2 bg-gray-400 text-white rounded-lg"
             >
               Cancel
             </button>
             <button
-              type="submit"
-              className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+              type="submit" // The button will now trigger the form submission
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg"
             >
-              {task ? 'Save Changes' : 'Add Task'}
+              {task ? 'Save Changes' : 'Create Task'}
             </button>
           </div>
         </form>

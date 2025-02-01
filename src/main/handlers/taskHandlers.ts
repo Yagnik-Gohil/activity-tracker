@@ -12,9 +12,9 @@ import { TaskStatus } from '../utils/enum'
 /**
  * Handle adding a new task to a project.
  */
-ipcMain.handle('create-task', async (_, projectId: number, name: string) => {
+ipcMain.handle('create-task', async (_, data) => {
   try {
-    const newTask = await addTask(projectId, name)
+    const newTask = await addTask(data)
     return successResponse('Task created successfully', newTask)
   } catch (error) {
     console.error('❌ Error creating task:', error)
@@ -56,9 +56,9 @@ ipcMain.handle('get-task-by-id', async (_, taskId: number) => {
  */
 ipcMain.handle(
   'update-task',
-  async (_, taskId: number, name: string, description: string, status: TaskStatus) => {
+  async (_, data: { id: number; name: string; description: string; status: TaskStatus }) => {
     try {
-      const updatedTask = await updateTask(taskId, name, description, status)
+      const updatedTask = await updateTask(data.id, data.name, data.description, data.status)
       if (!updatedTask) {
         return errorResponse('Task not found or update failed')
       }

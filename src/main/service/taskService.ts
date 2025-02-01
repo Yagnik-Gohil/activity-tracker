@@ -2,6 +2,7 @@ import { AppDataSource } from '../db/connection'
 import { Task } from '../db/entities/Task'
 import { Project } from '../db/entities/Project'
 import { TaskStatus } from '../utils/enum'
+import { IAddTask } from '../utils/interface'
 
 /**
  * Adds a new task under a project.
@@ -9,14 +10,19 @@ import { TaskStatus } from '../utils/enum'
  * @param {string} name - The name of the task.
  * @returns {Promise<Task>} - The created task.
  */
-export const addTask = async (projectId: number, name: string): Promise<Task> => {
+export const addTask = async (data: IAddTask): Promise<Task> => {
   const taskRepo = AppDataSource.getRepository(Task)
   const projectRepo = AppDataSource.getRepository(Project)
-  const project = await projectRepo.findOneBy({ id: projectId })
-
+  const project = await projectRepo.findOne({ where: { id: data.projectId } })
   if (!project) throw new Error('Project not found')
 
-  const task = taskRepo.create({ name, project })
+  const task = taskRepo.create({
+    name: data.name,
+    project,
+    description: data.description,
+    status: data.status
+  })
+
   await taskRepo.save(task)
   return task
 }
@@ -52,13 +58,13 @@ export const getTaskById = async (taskId: number): Promise<Task | null> => {
  * @returns {Promise<Task | null>} - The updated task or null if not found.
  */
 export const updateTask = async (
-  taskId: number,
+  id: number,
   name: string,
   description: string,
   status: TaskStatus
 ): Promise<Task | null> => {
   const taskRepo = AppDataSource.getRepository(Task)
-  const task = await taskRepo.findOneBy({ id: taskId })
+  const task = await taskRepo.findOneBy({ id: id })
 
   if (!task) return null
 

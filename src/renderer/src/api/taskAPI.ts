@@ -1,4 +1,4 @@
-import { ITask } from '@renderer/utils/interface'
+import { ITask, TaskStatus } from '@renderer/utils/interface'
 import { showSuccessToast, showErrorToast } from '@renderer/utils/toastHelper'
 
 const taskAPI = {
@@ -15,9 +15,14 @@ const taskAPI = {
   },
 
   // Create a new task for a project
-  createTask: async (projectId: number, taskName: string): Promise<ITask> => {
+  createTask: async (
+    projectId: number,
+    taskName: string,
+    description: string,
+    status: TaskStatus
+  ): Promise<ITask> => {
     try {
-      const response = await window.api.createTask(projectId, taskName)
+      const response = await window.api.createTask(projectId, taskName, description, status)
       showSuccessToast('Task created successfully')
       return response.data
     } catch (error) {
@@ -28,9 +33,14 @@ const taskAPI = {
   },
 
   // Update a task name
-  updateTask: async (taskId: number, name: string): Promise<ITask> => {
+  updateTask: async (
+    id: number,
+    name: string,
+    description: string,
+    status: TaskStatus
+  ): Promise<ITask> => {
     try {
-      const response = await window.api.updateTask(taskId, name)
+      const response = await window.api.updateTask(id, name, description, status)
       showSuccessToast('Task updated successfully')
       return response.data
     } catch (error) {

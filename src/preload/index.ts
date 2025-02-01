@@ -3,6 +3,7 @@ import { electronAPI } from '@electron-toolkit/preload'
 import { ErrorResponse, SuccessResponse } from '../main/utils/interface'
 import { Project } from '../main/db/entities/Project'
 import { Task } from '../main/db/entities/Task'
+import { TaskStatus } from '../main/utils/enum'
 
 // Custom APIs for renderer
 const api = {
@@ -16,14 +17,16 @@ const api = {
 
   // Fetch tasks for a project
   getTasks: (projectId: number): Promise<SuccessResponse<Task[]> | ErrorResponse> =>
-    ipcRenderer.invoke('get-tasks', projectId),
+    ipcRenderer.invoke('get-tasks-by-project', projectId),
 
   // Create a new task for a project
   createTask: (
     projectId: number,
-    taskName: string
+    name: string,
+    description: string,
+    status: TaskStatus
   ): Promise<SuccessResponse<Task> | ErrorResponse> =>
-    ipcRenderer.invoke('create-task', { projectId, taskName }),
+    ipcRenderer.invoke('create-task', { projectId, name, description, status }),
 
   // Update project name
   updateProject: (id: number, name: string): Promise<SuccessResponse<Project> | ErrorResponse> =>
@@ -34,8 +37,13 @@ const api = {
     ipcRenderer.invoke('delete-project', id),
 
   // Update task name
-  updateTask: (taskId: number, name: string): Promise<SuccessResponse<Task> | ErrorResponse> =>
-    ipcRenderer.invoke('update-task', { taskId, name }),
+  updateTask: (
+    id: number,
+    name: string,
+    description: string,
+    status: TaskStatus
+  ): Promise<SuccessResponse<Task> | ErrorResponse> =>
+    ipcRenderer.invoke('update-task', { id, name, description, status }),
 
   // Delete task
   deleteTask: (taskId: number): Promise<SuccessResponse<void> | ErrorResponse> =>

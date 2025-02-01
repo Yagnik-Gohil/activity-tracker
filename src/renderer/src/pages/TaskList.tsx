@@ -2,55 +2,31 @@ import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { ChevronDown, ChevronUp, Edit, Trash2, Plus, ChevronRight } from 'lucide-react'
 import { TaskFormPopup } from '../components/TaskFormPopup'
+import { ITask, TaskStatus } from '@renderer/utils/interface'
+import taskAPI from '@renderer/api/taskAPI'
 
-type Status = 'Todo' | 'In Progress' | 'Completed'
-type SortKey = 'title' | 'created' | 'status'
-
-interface Task {
-  id: number
-  title: string
-  description: string
-  created: string
-  status: Status
-}
-
-const initialTasks: Task[] = [
-  {
-    id: 1,
-    title: 'Redesign the home page',
-    description:
-      'Our current home page looks dated and should be redesigned. We need to improve the user experience and make it more modern. This includes updating the color scheme, typography, and overall layout to better reflect our brand identity.',
-    created: '2023-08-20',
-    status: 'In Progress'
-  },
-  {
-    id: 2,
-    title: 'Update pricing page',
-    description:
-      'Add new pricing tiers and update design. Need to include monthly and annual pricing options, highlight the most popular plan, and add comparison features.',
-    created: '2023-08-19',
-    status: 'Todo'
-  },
-  {
-    id: 3,
-    title: 'Implement user authentication',
-    description:
-      'Set up secure login and registration system. This includes implementing OAuth, email verification, password reset functionality, and ensuring all security best practices are followed.',
-    created: '2023-08-18',
-    status: 'Completed'
-  }
-]
+type SortKey = 'name' | 'created_at' | 'status'
 
 export function TaskList(): JSX.Element {
   const { projectId } = useParams<{ projectId: string }>()
-  const [tasks, setTasks] = useState<Task[]>(initialTasks)
-  const [sortKey, setSortKey] = useState<SortKey>('title')
+  const [tasks, setTasks] = useState<ITask[]>([])
+  const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
-  const [statusFilter, setStatusFilter] = useState<Status | 'All'>('All')
+  const [statusFilter, setStatusFilter] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null)
-  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [editingTask, setEditingTask] = useState<ITask | null>(null)
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false)
+
+  useEffect(() => {
+    // Fetch tasks from API for the current project
+    if (projectId) {
+      taskAPI
+        .getTasks(parseInt(projectId))
+        .then((data) => setTasks(data))
+        .catch((err) => console.error('Failed to fetch tasks:', err))
+    }
+  }, [projectId])
 
   const handleSort = (key: SortKey): void => {
     if (key === sortKey) {
@@ -63,15 +39,21 @@ export function TaskList(): JSX.Element {
 
   const filteredAndSortedTasks = tasks
     .filter((task) => {
-      const matchesStatus = statusFilter === 'All' || task.status === statusFilter
+      const matchesStatus = !statusFilter || task.status === statusFilter // This checks for empty string too
       const matchesSearch =
-        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.description.toLowerCase().includes(searchTerm.toLowerCase())
+
       return matchesStatus && matchesSearch
     })
     .sort((a, b) => {
-      if (a[sortKey] < b[sortKey]) return sortOrder === 'asc' ? -1 : 1
-      if (a[sortKey] > b[sortKey]) return sortOrder === 'asc' ? 1 : -1
+      const getValue = (task: ITask, key: SortKey): string => task[key] || '' // return an empty string if value is undefined
+
+      const valueA = getValue(a, sortKey)
+      const valueB = getValue(b, sortKey)
+
+      if (valueA < valueB) return sortOrder === 'asc' ? -1 : 1
+      if (valueA > valueB) return sortOrder === 'asc' ? 1 : -1
       return 0
     })
 
@@ -80,26 +62,42 @@ export function TaskList(): JSX.Element {
     setIsTaskFormOpen(true)
   }
 
-  const handleEditTask = (task: Task): void => {
+  const handleEditTask = (task: ITask): void => {
     setEditingTask(task)
     setIsTaskFormOpen(true)
   }
 
   const handleDeleteTask = (id: number): void => {
-    setTasks(tasks.filter((task) => task.id !== id))
-    setExpandedTaskId(null)
+    taskAPI
+      .deleteTask(id)
+      .then((result) => {
+        if (result) {
+          setTasks(tasks.filter((task) => task.id !== id))
+          setExpandedTaskId(null)
+        }
+      })
+      .catch((err) => console.error('Failed to delete task:', err))
   }
 
-  const handleSaveTask = (taskData: Omit<Task, 'id' | 'created'>): void => {
+  const handleSaveTask = (taskData: Omit<ITask, 'id' | 'created_at'>): void => {
     if (editingTask) {
-      setTasks(tasks.map((task) => (task.id === editingTask.id ? { ...task, ...taskData } : task)))
+      taskAPI
+        .updateTask(editingTask.id, taskData.name, taskData.description, taskData.status)
+        .then((updatedTask) => {
+          setTasks(tasks.map((task) => (task.id === editingTask.id ? updatedTask : task)))
+          setIsTaskFormOpen(false)
+        })
+        .catch((err) => console.error('Failed to update task:', err))
     } else {
-      const newTask: Task = {
-        ...taskData,
-        id: Math.max(...tasks.map((t) => t.id)) + 1,
-        created: new Date().toISOString().split('T')[0]
+      if (projectId) {
+        taskAPI
+          .createTask(parseInt(projectId), taskData.name, taskData.description, taskData.status)
+          .then((newTask) => {
+            setTasks([...tasks, newTask])
+            setIsTaskFormOpen(false)
+          })
+          .catch((err) => console.error('Failed to create task:', err))
       }
-      setTasks([...tasks, newTask])
     }
   }
 
@@ -107,15 +105,16 @@ export function TaskList(): JSX.Element {
     setExpandedTaskId(expandedTaskId === id ? null : id)
   }
 
-  const handleStatusChange = (id: number, newStatus: Status): void => {
-    setTasks(tasks.map((task) => (task.id === id ? { ...task, status: newStatus } : task)))
+  const handleStatusChange = (task: ITask, newStatus: TaskStatus): void => {
+    taskAPI
+      .updateTask(task.id, task.name, task.description, newStatus)
+      .then((updatedTask) => {
+        setTasks((prevTasks) =>
+          prevTasks.map((prevTask) => (prevTask.id === task.id ? updatedTask : prevTask))
+        )
+      })
+      .catch((err) => console.error('Failed to update task status:', err))
   }
-
-  useEffect(() => {
-    // Here you would typically fetch tasks for the specific project
-    console.log(`Fetching tasks for project ${projectId}`)
-    // For now, we'll just log the project ID
-  }, [projectId])
 
   return (
     <div className="h-full flex flex-col">
@@ -141,12 +140,12 @@ export function TaskList(): JSX.Element {
           <select
             className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as Status | 'All')}
+            onChange={(e) => setStatusFilter(e.target.value)} // Keep it as string
           >
-            <option value="All">All Status</option>
-            <option value="Todo">Todo</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
+            <option value="">All Status</option>
+            <option value={TaskStatus.TODO}>Todo</option>
+            <option value={TaskStatus.IN_PROGRESS}>In Progress</option>
+            <option value={TaskStatus.COMPLETED}>Completed</option>
           </select>
         </div>
       </div>
@@ -157,11 +156,11 @@ export function TaskList(): JSX.Element {
               <th className="w-8 py-3"></th>
               <th
                 className="py-3 pr-4 text-left font-medium text-sm"
-                onClick={() => handleSort('title')}
+                onClick={() => handleSort('name')}
               >
                 <div className="flex items-center cursor-pointer">
                   Title{' '}
-                  {sortKey === 'title' &&
+                  {sortKey === 'name' &&
                     (sortOrder === 'asc' ? (
                       <ChevronUp className="ml-1 w-4 h-4" />
                     ) : (
@@ -185,11 +184,11 @@ export function TaskList(): JSX.Element {
               </th>
               <th
                 className="py-3 px-4 text-left font-medium text-sm w-[100px]"
-                onClick={() => handleSort('created')}
+                onClick={() => handleSort('created_at')}
               >
                 <div className="flex items-center cursor-pointer whitespace-nowrap">
                   Created{' '}
-                  {sortKey === 'created' &&
+                  {sortKey === 'created_at' &&
                     (sortOrder === 'asc' ? (
                       <ChevronUp className="ml-1 w-4 h-4" />
                     ) : (
@@ -212,31 +211,34 @@ export function TaskList(): JSX.Element {
                     />
                   </td>
                   <td className="py-3 pr-4">
-                    <div className="font-medium">{task.title}</div>
+                    <div className="font-medium">{task.name}</div>
                   </td>
                   <td className="py-3 px-4 whitespace-nowrap">
                     <select
                       value={task.status}
                       onChange={(e) => {
                         e.stopPropagation()
-                        handleStatusChange(task.id, e.target.value as Status)
+                        handleStatusChange(task, e.target.value as TaskStatus)
                       }}
                       onClick={(e) => e.stopPropagation()}
                       className={`px-2 py-1 text-xs font-medium rounded-full border-none focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                        task.status === 'Todo'
+                        task.status === TaskStatus.TODO
                           ? 'bg-yellow-100 text-yellow-700 focus:ring-yellow-500'
-                          : task.status === 'In Progress'
+                          : task.status === TaskStatus.IN_PROGRESS
                             ? 'bg-blue-100 text-blue-700 focus:ring-blue-500'
                             : 'bg-green-100 text-green-700 focus:ring-green-500'
                       }`}
                     >
-                      <option value="Todo">Todo</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="Completed">Completed</option>
+                      <option value={TaskStatus.TODO}>Todo</option>
+                      <option value={TaskStatus.IN_PROGRESS}>In Progress</option>
+                      <option value={TaskStatus.COMPLETED}>Completed</option>
                     </select>
                   </td>
-                  <td className="py-3 px-4 whitespace-nowrap text-gray-600">{task.created}</td>
+                  <td className="py-3 px-4 whitespace-nowrap text-gray-600">
+                    {task.created_at && new Date(task.created_at).toLocaleDateString()}
+                  </td>
                 </tr>
+
                 {expandedTaskId === task.id && (
                   <tr className="bg-gray-50">
                     <td colSpan={4} className="px-10 py-4">
@@ -276,12 +278,15 @@ export function TaskList(): JSX.Element {
           </tbody>
         </table>
       </div>
-      <TaskFormPopup
-        task={editingTask}
-        isOpen={isTaskFormOpen}
-        onClose={() => setIsTaskFormOpen(false)}
-        onSave={handleSaveTask}
-      />
+
+      {isTaskFormOpen && (
+        <TaskFormPopup
+          isOpen={isTaskFormOpen}
+          task={editingTask}
+          onSave={handleSaveTask}
+          onClose={() => setIsTaskFormOpen(false)}
+        />
+      )}
     </div>
   )
 }

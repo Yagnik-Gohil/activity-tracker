@@ -8,15 +8,16 @@ export interface IProject {
 export enum TaskStatus {
   TODO = 'todo',
   IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed'
+  COMPLETED = 'completed',
+  ALL = 'all'
 }
 
 // Type for Task object
 export interface ITask {
   id: number
   name: string
+  description: string
   status: TaskStatus
-  projectId: number
   created_at?: string
   updated_at?: string
 }
