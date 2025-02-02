@@ -61,37 +61,26 @@ export const deleteProject = async (id: number): Promise<boolean> => {
 }
 
 /**
- * Updates the duration of a project. This will sum the total tracked time for the project.
- * @param {number} id - The ID of the project.
- * @param {number} newDuration - The new total duration (in seconds) for the project.
- * @returns {Promise<Project | null>} - The updated project or null if not found.
- */
-export const updateProjectDuration = async (
-  id: number,
-  newDuration: number
-): Promise<Project | null> => {
-  const projectRepo = AppDataSource.getRepository(Project)
-  const project = await projectRepo.findOneBy({ id })
-
-  if (!project) return null
-
-  project.today_time = newDuration // Assuming 'duration' column exists on the Project entity
-  return await projectRepo.save(project)
-}
-
-/**
  * Resets the project's duration for the current day.
  * @param {number} id - The ID of the project to reset the duration for.
  * @returns {Promise<Project | null>} - The updated project with the reset duration.
  */
-export const resetProjectDurationForToday = async (id: number): Promise<Project | null> => {
+export const resetProjectDurationForToday = async (): Promise<void> => {
   const projectRepo = AppDataSource.getRepository(Project)
-  const project = await projectRepo.findOneBy({ id })
 
-  if (!project) return null
+  // Get today's date in YYYY-MM-DD format
+  const currentDate = new Date().toISOString().split('T')[0]
 
-  project.today_time = 0 // Reset the duration to 0
-  return await projectRepo.save(project)
+  // Use query builder to update all projects where last_updated is not today's date
+  await projectRepo
+    .createQueryBuilder()
+    .update(Project)
+    .set({
+      today_time: 0, // Reset the today_time to 0
+      last_updated: currentDate // Set last_updated to today's date
+    })
+    .where('last_updated != :currentDate', { currentDate }) // Only update projects where last_updated is not today
+    .execute()
 }
 /**
  * Gets the total time spent today across all projects using the query builder.

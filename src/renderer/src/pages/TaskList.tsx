@@ -45,9 +45,11 @@ export function TaskList(): JSX.Element {
   }, [projectId])
 
   const handleToggleTimer = (task: ITask): void => {
-    if (taskId === task.id) {
+    // If the task is already running, stop the timer
+    if (taskId === task.id && isRunning) {
       dispatch(stopTimer())
     } else {
+      // If the task is not running or a new task, start the timer
       dispatch(
         startTimer({
           projectId: Number(projectId)!,

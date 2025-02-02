@@ -8,6 +8,7 @@ import { initializeDB } from './db/connection'
 import './handlers/projectHandlers'
 import './handlers/taskHandlers'
 import { addOrUpdateActivity } from './service/activityService'
+import { resetProjectDurationForToday } from './service/projectService'
 
 let mainWindow: BrowserWindow | null = null
 let timerInterval: NodeJS.Timeout | null = null // Interval reference
@@ -143,7 +144,7 @@ app.whenReady().then(async () => {
   try {
     await initializeDB()
     console.log('✅ Database initialized successfully')
-
+    await resetProjectDurationForToday()
     startCronJob() // Start activity tracking
   } catch (error) {
     console.error('❌ Database initialization failed:', error)
@@ -172,9 +173,10 @@ ipcMain.handle('timer-state-changed', async (_, newState) => {
 
   if (isRunning) {
     console.log('✅ Starting timer...')
-    startTimer(taskId, projectId) // Start fresh
+    await stopTimer() // Ensure that we stop any running timer first
+    startTimer(taskId, projectId) // Start the new timer
   } else {
     console.log('⏹ Stopping timer...')
-    await stopTimer()
+    await stopTimer() // Stop the current timer if it's running
   }
 })

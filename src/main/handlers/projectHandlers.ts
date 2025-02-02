@@ -2,7 +2,6 @@ import { ipcMain } from 'electron'
 import {
   addProject,
   getProjects,
-  updateProjectDuration,
   updateProject, // Import the updateProject function
   deleteProject,
   getTotalTimeToday
@@ -32,19 +31,6 @@ ipcMain.handle('get-projects', async () => {
   } catch (error) {
     console.error('❌ Error fetching projects:', error)
     return errorResponse('Failed to fetch projects')
-  }
-})
-
-/**
- * Handles updating project duration.
- */
-ipcMain.handle('update-project-duration', async (_, projectId: number, newDuration: number) => {
-  try {
-    const updatedProject = await updateProjectDuration(projectId, newDuration)
-    return successResponse('Project duration updated successfully', updatedProject)
-  } catch (error) {
-    console.error('❌ Error updating project duration:', error)
-    return errorResponse('Failed to update project duration')
   }
 })
 
