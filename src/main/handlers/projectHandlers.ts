@@ -37,10 +37,10 @@ ipcMain.handle('get-projects', async () => {
 /**
  * Handles updating project details (name, description, etc.)
  */
-ipcMain.handle('update-project', async (_, projectId: number, name: string) => {
+ipcMain.handle('update-project', async (_, data: { id: number; name: string }) => {
   try {
     // Call updateProject service function
-    const updatedProject = await updateProject(projectId, name)
+    const updatedProject = await updateProject(data.id, data.name)
 
     // If the project doesn't exist
     if (!updatedProject) {
