@@ -8,7 +8,7 @@ import {
   setTotalTimeToday
 } from '@renderer/store/timerSlice' // Adjust path as necessary
 import { Play, StopCircle } from 'lucide-react' // Assuming you have these icons installed
-import { showErrorToast } from '@renderer/utils/toastHelper'
+import { showErrorToast, showSuccessToast } from '@renderer/utils/toastHelper'
 
 const formatTime = (seconds: number): string => {
   const hours = String(Math.floor(seconds / 3600)).padStart(2, '0')
@@ -24,7 +24,7 @@ export function TimerWidget(): JSX.Element {
 
   // Handle start/stop of the timer
   const handleToggleTimer = (): void => {
-    if (!taskId) {
+    if (!taskId || !projectId) {
       // Show toast notification if no task is selected
       showErrorToast('Please select a task.')
       return
@@ -48,6 +48,18 @@ export function TimerWidget(): JSX.Element {
       }
     }
   }
+
+  useEffect(() => {
+    // When the timer starts or stops, call the API to update the backend
+    if (taskId) {
+      showSuccessToast(isRunning ? 'Timer Started' : 'Timer Stopped')
+      window.api.updateTimerState({
+        isRunning, // true when the timer starts, false when it stops
+        taskId, // ID of the task
+        projectId: Number(projectId) // ID of the project
+      })
+    }
+  }, [isRunning, taskId, projectId]) // This will re-trigger the effect when the timer state changes
 
   // Update elapsed time every second if the timer is running
   useEffect(() => {

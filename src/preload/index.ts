@@ -51,7 +51,14 @@ const api = {
 
   // Get total time spent today
   getTotalTimeToday: (): Promise<SuccessResponse<number> | ErrorResponse> =>
-    ipcRenderer.invoke('get-total-time-today') // IPC call to get today's total time
+    ipcRenderer.invoke('get-total-time-today'),
+
+  // 🚀 New method to update the timer state
+  updateTimerState: (newState: {
+    isRunning: boolean
+    taskId: number
+    projectId: number
+  }): Promise<void> => ipcRenderer.invoke('timer-state-changed', newState)
 }
 
 // Use `contextBridge` to expose Electron APIs to the renderer only if context isolation is enabled

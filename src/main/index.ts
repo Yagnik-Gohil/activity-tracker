@@ -1,16 +1,107 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { initializeDB } from './db/connection'
 
-// Import your handler files here
-import './handlers/projectHandlers' // Import project-related handlers
-import './handlers/taskHandlers' // Import task-related handlers
+// Import handlers
+import './handlers/projectHandlers'
+import './handlers/taskHandlers'
+import { addOrUpdateActivity } from './service/activityService'
 
 let mainWindow: BrowserWindow | null = null
+let timerInterval: NodeJS.Timeout | null = null // Interval reference
 
+// Timer state object (mutated instead of reassigning)
+const currentTimerState = {
+  taskId: null as number | null,
+  projectId: null as number | null,
+  isRunning: false,
+  elapsedTime: 0 // Time in seconds
+}
+
+/**
+ * Cron job that updates activity every 10 minutes.
+ */
+const startCronJob = (): void => {
+  setInterval(async () => {
+    if (currentTimerState.isRunning && currentTimerState.taskId && currentTimerState.projectId) {
+      await addOrUpdateActivity(
+        currentTimerState.taskId,
+        currentTimerState.projectId,
+        currentTimerState.elapsedTime
+      )
+
+      // Reset elapsed time after saving
+      currentTimerState.elapsedTime = 0
+    }
+  }, 600000) // 10 minutes
+}
+
+/**
+ * Starts incrementing elapsed time every second.
+ */
+const startElapsedTimeCounter = (): void => {
+  if (timerInterval) return // Prevent multiple intervals
+
+  timerInterval = setInterval(() => {
+    if (currentTimerState.isRunning) {
+      currentTimerState.elapsedTime += 1
+      console.log(`⏳ Elapsed time: ${currentTimerState.elapsedTime} seconds`)
+    }
+  }, 1000) // Increment every second
+}
+
+/**
+ * Clears the interval to stop counting elapsed time.
+ */
+const stopElapsedTimeCounter = (): void => {
+  if (timerInterval) {
+    clearInterval(timerInterval)
+    timerInterval = null
+  }
+}
+
+/**
+ * Starts the timer for a specific task and project.
+ */
+const startTimer = (taskId: number, projectId: number): void => {
+  currentTimerState.taskId = taskId
+  currentTimerState.projectId = projectId
+  currentTimerState.isRunning = true
+  currentTimerState.elapsedTime = 0
+
+  startElapsedTimeCounter()
+
+  console.log(`⏳ Timer started for task ${taskId}, project ${projectId}`)
+}
+
+/**
+ * Stops the current timer and saves elapsed time.
+ */
+const stopTimer = async (): Promise<void> => {
+  if (!currentTimerState.isRunning || !currentTimerState.taskId || !currentTimerState.projectId)
+    return
+
+  // Save the elapsed time before stopping the timer
+  await addOrUpdateActivity(
+    currentTimerState.taskId,
+    currentTimerState.projectId,
+    currentTimerState.elapsedTime
+  )
+
+  currentTimerState.isRunning = false
+  stopElapsedTimeCounter()
+
+  console.log(`⏹ Timer stopped for task ${currentTimerState.taskId}`)
+}
+
+/**
+ * Creates the main application window.
+ */
 async function createWindow(): Promise<void> {
+  if (mainWindow) return // Prevent multiple windows
+
   mainWindow = new BrowserWindow({
     width: 1080,
     height: 720,
@@ -25,32 +116,35 @@ async function createWindow(): Promise<void> {
     }
   })
 
-  mainWindow.on('ready-to-show', () => {
-    mainWindow?.show()
-  })
+  mainWindow.once('ready-to-show', () => mainWindow?.show())
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url)
     return { action: 'deny' }
   })
 
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  const rendererUrl = process.env['ELECTRON_RENDERER_URL']
+
+  if (is.dev && rendererUrl) {
+    await mainWindow.loadURL(rendererUrl)
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    await mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  mainWindow.on('closed', () => {
-    mainWindow = null
-  })
+  mainWindow.on('closed', () => (mainWindow = null))
 }
 
+/**
+ * Initializes the application.
+ */
 app.whenReady().then(async () => {
   electronApp.setAppUserModelId('com.electron')
 
   try {
     await initializeDB()
     console.log('✅ Database initialized successfully')
+
+    startCronJob() // Start activity tracking
   } catch (error) {
     console.error('❌ Database initialization failed:', error)
   }
@@ -67,5 +161,20 @@ app.whenReady().then(async () => {
 })
 
 app.on('window-all-closed', () => {
-  app.quit()
+  stopTimer()
+  setTimeout(() => {
+    app.quit()
+  }, 5000)
+})
+
+ipcMain.handle('timer-state-changed', async (_, newState) => {
+  const { isRunning, taskId, projectId } = newState
+
+  if (isRunning) {
+    console.log('✅ Starting timer...')
+    startTimer(taskId, projectId) // Start fresh
+  } else {
+    console.log('⏹ Stopping timer...')
+    await stopTimer()
+  }
 })

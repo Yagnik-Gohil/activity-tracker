@@ -43,8 +43,6 @@ const timerSlice = createSlice({
       // Stop the timer but preserve task/project info
       state.isRunning = false
       // Do not reset task/project details, keep them intact
-      // Only reset elapsedTime when stopping the timer
-      state.elapsedTime = 0
     },
     updateElapsedTime: (state) => {
       // Update elapsed time only if the timer is running
