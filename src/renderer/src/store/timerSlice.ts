@@ -2,8 +2,8 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 interface TimerState {
   isRunning: boolean
-  projectId: string | null
-  taskId: string | null
+  projectId: number | null
+  taskId: number | null
   taskName: string | null
   projectName: string | null
   elapsedTime: number // Add elapsedTime here to store the time passed in seconds
@@ -25,8 +25,8 @@ const timerSlice = createSlice({
     startTimer: (
       state,
       action: PayloadAction<{
-        projectId: string
-        taskId: string
+        projectId: number
+        taskId: number
         taskName: string
         projectName: string
       }>

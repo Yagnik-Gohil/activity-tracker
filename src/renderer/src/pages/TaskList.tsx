@@ -32,8 +32,7 @@ export function TaskList(): JSX.Element {
   const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null)
   const [editingTask, setEditingTask] = useState<ITask | null>(null)
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false)
-  const [hoveredTaskId, setHoveredTaskId] = useState<number | null>(null)
-  const activeTask = useSelector((state: RootState) => state.timer.taskId)
+  const { taskId, isRunning } = useSelector((state: RootState) => state.timer)
 
   useEffect(() => {
     // Fetch tasks from API for the current project
@@ -46,15 +45,15 @@ export function TaskList(): JSX.Element {
   }, [projectId])
 
   const handleToggleTimer = (task: ITask): void => {
-    if (activeTask === task.id.toString()) {
+    if (taskId === task.id) {
       dispatch(stopTimer())
     } else {
       dispatch(
         startTimer({
-          projectId: projectId!,
-          taskId: task.id.toString(),
+          projectId: Number(projectId)!,
+          taskId: task.id,
           taskName: task.name,
-          projectName: location.state || 'Unknown Project'
+          projectName: location.state
         })
       )
     }
@@ -234,10 +233,8 @@ export function TaskList(): JSX.Element {
             {filteredAndSortedTasks.map((task) => (
               <React.Fragment key={task.id}>
                 <tr
-                  className={`border-b hover:bg-gray-50 cursor-pointer ${expandedTaskId === task.id ? 'bg-gray-50' : ''}`}
+                  className={`border-b hover:bg-gray-50 cursor-pointer ${expandedTaskId === task.id ? 'bg-gray-50' : ''} group`}
                   onClick={() => toggleTaskExpand(task.id)}
-                  onMouseEnter={() => setHoveredTaskId(task.id)}
-                  onMouseLeave={() => setHoveredTaskId(null)}
                 >
                   <td className="py-3 pl-2">
                     <ChevronRight
@@ -247,21 +244,20 @@ export function TaskList(): JSX.Element {
                   <td className="h-12 py-3 pr-4 flex justify-between items-center space-x-4">
                     <div className="font-medium text-sm">{task.name}</div>
 
-                    {(hoveredTaskId === task.id || activeTask === task.id.toString()) && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleToggleTimer(task)
-                        }}
-                        className="p-2 rounded-full transition-all bg-gray-100 hover:bg-gray-200 focus:outline-none"
-                      >
-                        {activeTask === task.id.toString() ? (
-                          <StopCircle className="w-5 h-5 text-red-500" />
-                        ) : (
-                          <Play className="w-5 h-5 text-green-500" />
-                        )}
-                      </button>
-                    )}
+                    {/* Show stop icon if task is active, otherwise show play on hover */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleToggleTimer(task)
+                      }}
+                      className={`p-2 rounded-full transition-all bg-gray-100 hover:bg-gray-200 focus:outline-none ${taskId === task.id ? 'block' : 'group-hover:block hidden'}`}
+                    >
+                      {isRunning && taskId === task.id ? (
+                        <StopCircle className="w-5 h-5 text-red-500" />
+                      ) : (
+                        <Play className="w-5 h-5 text-green-500" />
+                      )}
+                    </button>
                   </td>
                   <td className="py-3 px-4 whitespace-nowrap">
                     <select
