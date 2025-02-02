@@ -47,7 +47,11 @@ const api = {
 
   // Delete task
   deleteTask: (taskId: number): Promise<SuccessResponse<void> | ErrorResponse> =>
-    ipcRenderer.invoke('delete-task', taskId)
+    ipcRenderer.invoke('delete-task', taskId),
+
+  // Get total time spent today
+  getTotalTimeToday: (): Promise<SuccessResponse<number> | ErrorResponse> =>
+    ipcRenderer.invoke('get-total-time-today') // IPC call to get today's total time
 }
 
 // Use `contextBridge` to expose Electron APIs to the renderer only if context isolation is enabled

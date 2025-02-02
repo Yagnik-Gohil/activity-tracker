@@ -21,6 +21,7 @@ declare global {
         status: TaskStatus
       ) => Promise<IResponse<ITask>>
       deleteTask: (taskId: number) => Promise<IResponse<boolean>>
+      getTotalTimeToday: () => Promise<IResponse<number>> // Returns the total time in seconds
     }
   }
 }

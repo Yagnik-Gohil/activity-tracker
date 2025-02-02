@@ -93,3 +93,19 @@ export const resetProjectDurationForToday = async (id: number): Promise<Project 
   project.today_time = 0 // Reset the duration to 0
   return await projectRepo.save(project)
 }
+/**
+ * Gets the total time spent today across all projects using the query builder.
+ * @returns {Promise<number>} - The total time spent today in seconds.
+ */
+export const getTotalTimeToday = async (): Promise<number> => {
+  const projectRepo = AppDataSource.getRepository(Project)
+
+  // Use query builder to sum up the today_time from all projects
+  const result = await projectRepo
+    .createQueryBuilder('project')
+    .select('SUM(project.today_time)', 'totalTimeToday') // Sum the today_time column
+    .getRawOne() // Get the raw result
+
+  // Return the totalTimeToday (or 0 if no result)
+  return result.totalTimeToday ? parseInt(result.totalTimeToday, 10) : 0
+}

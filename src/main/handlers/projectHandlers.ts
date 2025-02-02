@@ -4,7 +4,8 @@ import {
   getProjects,
   updateProjectDuration,
   updateProject, // Import the updateProject function
-  deleteProject
+  deleteProject,
+  getTotalTimeToday
 } from '../service/projectService'
 import { successResponse, errorResponse } from '../utils/responseHandler'
 
@@ -81,5 +82,17 @@ ipcMain.handle('delete-project', async (_, projectId: number) => {
   } catch (error) {
     console.error('❌ Error deleting project:', error)
     return errorResponse('Failed to delete project')
+  }
+})
+/**
+ * Handle fetching the total time spent today across all projects.
+ */
+ipcMain.handle('get-total-time-today', async () => {
+  try {
+    const totalTimeToday = await getTotalTimeToday()
+    return successResponse('Total time spent today fetched successfully', totalTimeToday)
+  } catch (error) {
+    console.error('❌ Error fetching total time spent today:', error)
+    return errorResponse('Failed to fetch total time spent today')
   }
 })

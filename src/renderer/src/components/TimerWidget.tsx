@@ -1,11 +1,15 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '@renderer/store/store' // Adjust path as necessary
-import { startTimer, stopTimer, updateElapsedTime } from '@renderer/store/timerSlice' // Adjust path as necessary
+import {
+  startTimer,
+  stopTimer,
+  updateElapsedTime,
+  setTotalTimeToday
+} from '@renderer/store/timerSlice' // Adjust path as necessary
 import { Play, StopCircle } from 'lucide-react' // Assuming you have these icons installed
 import { showErrorToast } from '@renderer/utils/toastHelper'
 
-// Format time as HH:mm:ss
 const formatTime = (seconds: number): string => {
   const hours = String(Math.floor(seconds / 3600)).padStart(2, '0')
   const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0')
@@ -61,6 +65,14 @@ export function TimerWidget(): JSX.Element {
     }
   }, [isRunning, dispatch])
 
+  // Fetch total time spent today when the component mounts
+  useEffect(() => {
+    window.api.getTotalTimeToday().then((response) => {
+      // Dispatch the action to set the time spent today in Redux
+      dispatch(setTotalTimeToday(response.data))
+    })
+  }, [dispatch])
+
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm border space-y-4">
       <div className="flex items-center justify-between">
@@ -75,9 +87,7 @@ export function TimerWidget(): JSX.Element {
       </div>
       <div className="space-y-2">
         <div className="space-y-2">
-          {/* Display task name or a placeholder message */}
           <div className="text-sm font-medium">{taskName || 'Select a task to start timer'}</div>
-          {/* Display project name or a placeholder message */}
           <div className="text-xs text-gray-500">
             {projectName || 'Select a project to assign task'}
           </div>

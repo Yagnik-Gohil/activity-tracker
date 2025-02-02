@@ -6,7 +6,7 @@ interface TimerState {
   taskId: number | null
   taskName: string | null
   projectName: string | null
-  elapsedTime: number // Add elapsedTime here to store the time passed in seconds
+  elapsedTime: number // Store the time passed in seconds
 }
 
 const initialState: TimerState = {
@@ -31,13 +31,13 @@ const timerSlice = createSlice({
         projectName: string
       }>
     ) => {
-      // Start the timer
+      // Start the timer, but do not reset elapsedTime when starting
       state.isRunning = true
       state.projectId = action.payload.projectId
       state.taskId = action.payload.taskId
       state.taskName = action.payload.taskName
       state.projectName = action.payload.projectName
-      state.elapsedTime = 0 // Reset elapsed time when starting a new timer
+      // Do not reset elapsedTime here
     },
     stopTimer: (state) => {
       // Stop the timer but preserve task/project info
@@ -56,16 +56,27 @@ const timerSlice = createSlice({
       // Reset elapsed time manually if needed
       state.elapsedTime = 0
     },
-    // Optional: Reset only the timer details (not the task/project)
     resetTimer: (state) => {
+      // Reset the entire timer (but not task/project details)
       state.isRunning = false
       state.elapsedTime = 0
+    },
+
+    // New action to set the total elapsed time from today's data
+    setTotalTimeToday: (state, action: PayloadAction<number>) => {
+      state.elapsedTime = action.payload // Set the total time spent today in seconds
     }
   }
 })
 
-export const { startTimer, stopTimer, updateElapsedTime, resetElapsedTime, resetTimer } =
-  timerSlice.actions
+export const {
+  startTimer,
+  stopTimer,
+  updateElapsedTime,
+  resetElapsedTime,
+  resetTimer,
+  setTotalTimeToday
+} = timerSlice.actions
 
 export default timerSlice.reducer
 export type { TimerState }
