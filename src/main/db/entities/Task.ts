@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne } from 'typeorm'
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm'
 import { Project } from './Project'
 import { DefaultEntity } from './DefaultEntity'
 import { TaskStatus } from '../../utils/enum'
@@ -15,5 +15,6 @@ export class Task extends DefaultEntity {
   status: TaskStatus
 
   @ManyToOne(() => Project, (project) => project.tasks, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'project_id' })
   project: Project
 }

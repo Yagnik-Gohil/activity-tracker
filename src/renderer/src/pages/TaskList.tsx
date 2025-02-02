@@ -1,17 +1,29 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
-import { ChevronDown, ChevronUp, Edit, Trash2, Plus, ChevronRight } from 'lucide-react'
+import {
+  ChevronDown,
+  ChevronUp,
+  Edit,
+  Trash2,
+  Plus,
+  ChevronRight,
+  StopCircle,
+  Play
+} from 'lucide-react'
 import { TaskFormPopup } from '../components/TaskFormPopup'
 import { ITask, TaskStatus } from '@renderer/utils/interface'
 import taskAPI from '@renderer/api/taskAPI'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from '@renderer/store/store'
+import { startTimer, stopTimer } from '@renderer/store/timerSlice'
 
 type SortKey = 'name' | 'created_at' | 'status'
 
 export function TaskList(): JSX.Element {
-
   const location = useLocation()
-
+  const dispatch = useDispatch()
   const { projectId } = useParams<{ projectId: string }>()
+
   const [tasks, setTasks] = useState<ITask[]>([])
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
@@ -20,6 +32,8 @@ export function TaskList(): JSX.Element {
   const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null)
   const [editingTask, setEditingTask] = useState<ITask | null>(null)
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false)
+  const [hoveredTaskId, setHoveredTaskId] = useState<number | null>(null)
+  const activeTask = useSelector((state: RootState) => state.timer.taskId)
 
   useEffect(() => {
     // Fetch tasks from API for the current project
@@ -30,6 +44,21 @@ export function TaskList(): JSX.Element {
         .catch((err) => console.error('Failed to fetch tasks:', err))
     }
   }, [projectId])
+
+  const handleToggleTimer = (task: ITask): void => {
+    if (activeTask === task.id.toString()) {
+      dispatch(stopTimer())
+    } else {
+      dispatch(
+        startTimer({
+          projectId: projectId!,
+          taskId: task.id.toString(),
+          taskName: task.name,
+          projectName: location.state || 'Unknown Project'
+        })
+      )
+    }
+  }
 
   const handleSort = (key: SortKey): void => {
     if (key === sortKey) {
@@ -207,14 +236,32 @@ export function TaskList(): JSX.Element {
                 <tr
                   className={`border-b hover:bg-gray-50 cursor-pointer ${expandedTaskId === task.id ? 'bg-gray-50' : ''}`}
                   onClick={() => toggleTaskExpand(task.id)}
+                  onMouseEnter={() => setHoveredTaskId(task.id)}
+                  onMouseLeave={() => setHoveredTaskId(null)}
                 >
                   <td className="py-3 pl-2">
                     <ChevronRight
                       className={`w-4 h-4 text-gray-400 transition-transform ${expandedTaskId === task.id ? 'rotate-90' : ''}`}
                     />
                   </td>
-                  <td className="py-3 pr-4">
-                    <div className="font-medium">{task.name}</div>
+                  <td className="h-12 py-3 pr-4 flex justify-between items-center space-x-4">
+                    <div className="font-medium text-sm">{task.name}</div>
+
+                    {(hoveredTaskId === task.id || activeTask === task.id.toString()) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleToggleTimer(task)
+                        }}
+                        className="p-2 rounded-full transition-all bg-gray-100 hover:bg-gray-200 focus:outline-none"
+                      >
+                        {activeTask === task.id.toString() ? (
+                          <StopCircle className="w-5 h-5 text-red-500" />
+                        ) : (
+                          <Play className="w-5 h-5 text-green-500" />
+                        )}
+                      </button>
+                    )}
                   </td>
                   <td className="py-3 px-4 whitespace-nowrap">
                     <select
