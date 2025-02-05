@@ -34,10 +34,10 @@ export function TaskFormPopup({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-1/3">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
         <h2 className="text-xl font-semibold mb-4">{task ? 'Edit Task' : 'Create Task'}</h2>
-        {/* Form submission should be handled here */}
+
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
@@ -45,26 +45,28 @@ export function TaskFormPopup({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
               required
             />
           </div>
+
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-32"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none h-32"
               rows={4}
             />
           </div>
+
           {!task && (
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">Status</label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
               >
                 <option value={TaskStatus.TODO}>Todo</option>
                 <option value={TaskStatus.IN_PROGRESS}>In Progress</option>
@@ -72,17 +74,18 @@ export function TaskFormPopup({
               </select>
             </div>
           )}
-          <div className="flex justify-end space-x-4">
+
+          <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-400 text-white rounded-lg"
+              className="px-4 py-2 text-sm text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition disabled:opacity-50"
             >
               Cancel
             </button>
             <button
-              type="submit" // The button will now trigger the form submission
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+              type="submit"
+              className="px-4 py-2 text-sm bg-black text-white rounded-md hover:bg-gray-900 transition disabled:opacity-50"
             >
               {task ? 'Save Changes' : 'Create Task'}
             </button>

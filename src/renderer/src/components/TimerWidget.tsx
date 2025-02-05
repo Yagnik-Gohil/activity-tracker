@@ -7,8 +7,10 @@ import {
   updateElapsedTime,
   setTotalTimeToday
 } from '@renderer/store/timerSlice' // Adjust path as necessary
-import { Play, StopCircle } from 'lucide-react' // Assuming you have these icons installed
 import { showErrorToast, showSuccessToast } from '@renderer/utils/toastHelper'
+// Import your SVGs as paths or URLs
+import startIcon from '@renderer/utils/play.svg'
+import stopIcon from '@renderer/utils/stop.svg'
 
 const formatTime = (seconds: number): string => {
   const hours = String(Math.floor(seconds / 3600)).padStart(2, '0')
@@ -86,23 +88,30 @@ export function TimerWidget(): JSX.Element {
   }, [dispatch])
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm border space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="text-3xl font-mono">{formatTime(elapsedTime)}</div>
-        <button onClick={handleToggleTimer} className="p-2 hover:bg-gray-100 rounded-full">
+    <div className="bg-gray-50 p-6 rounded-lg border flex flex-col items-center justify-center space-y-4">
+      <div className="w-full text-center">
+        <div className="text-xl font-bold bg-gray-900 text-white px-4 py-2 rounded-md">
+          {formatTime(elapsedTime)}
+        </div>
+      </div>
+      <div className="flex items-center justify-center space-x-4">
+        <button
+          onClick={handleToggleTimer}
+          className="p-1 rounded-full transition-all bg-gray-200 hover:bg-gray-300 focus:outline-none border border-gray-900"
+        >
           {isRunning ? (
-            <StopCircle className="w-5 h-5 text-red-500" />
+            <img src={stopIcon} alt="Stop Timer" className="w-8 h-8 text-gray-900" />
           ) : (
-            <Play className="w-5 h-5 text-green-500" />
+            <img src={startIcon} alt="Start Timer" className="w-8 h-8 text-gray-900" />
           )}
         </button>
       </div>
-      <div className="space-y-2">
-        <div className="space-y-2">
-          <div className="text-sm font-medium">{taskName || 'Select a task to start timer'}</div>
-          <div className="text-xs text-gray-500">
-            {projectName || 'Select a project to assign task'}
-          </div>
+      <div className="space-y-2 text-center">
+        <div className="text-sm font-medium text-gray-900">
+          {taskName || 'Select a task to start timer'}
+        </div>
+        <div className="text-xs text-gray-500">
+          {projectName || 'Select a project to assign task'}
         </div>
       </div>
     </div>

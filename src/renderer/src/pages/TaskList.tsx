@@ -1,21 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
-import {
-  ChevronDown,
-  ChevronUp,
-  Edit,
-  Trash2,
-  Plus,
-  ChevronRight,
-  StopCircle,
-  Play
-} from 'lucide-react'
+import { ChevronDown, ChevronUp, Edit, Trash2, Plus, ChevronRight } from 'lucide-react'
 import { TaskFormPopup } from '../components/TaskFormPopup'
 import { ITask, TaskStatus } from '@renderer/utils/interface'
 import taskAPI from '@renderer/api/taskAPI'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '@renderer/store/store'
 import { startTimer, stopTimer } from '@renderer/store/timerSlice'
+// Import your SVGs as paths or URLs
+import startIcon from '@renderer/utils/play.svg'
+import stopIcon from '@renderer/utils/stop.svg'
 
 type SortKey = 'name' | 'created_at' | 'status'
 
@@ -156,24 +150,25 @@ export function TaskList(): JSX.Element {
           <h1 className="text-2xl font-semibold">Tasks for {location.state}</h1>
           <button
             onClick={handleAddTask}
-            className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="flex items-center gap-2 h-10 px-4 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-900 transition"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4" />
             New Task
           </button>
         </div>
-        <div className="flex flex-wrap gap-4">
+
+        <div className="flex flex-wrap gap-3">
           <input
             type="text"
             placeholder="Search tasks..."
-            className="flex-grow px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-grow h-10 px-3 border border-gray-400 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-gray-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <select
-            className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-10 px-3 border border-gray-400 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-gray-500"
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)} // Keep it as string
+            onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="">All Status</option>
             <option value={TaskStatus.TODO}>Todo</option>
@@ -182,17 +177,18 @@ export function TaskList(): JSX.Element {
           </select>
         </div>
       </div>
+
       <div className="flex-1 overflow-y-auto px-6 pb-6 scrollbar-thin">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="border-b">
+            <tr className="border-b border-gray-300">
               <th className="w-8 py-3"></th>
               <th
-                className="py-3 pr-4 text-left font-medium text-sm"
+                className="py-3 pr-4 text-left font-medium text-sm text-gray-800 cursor-pointer"
                 onClick={() => handleSort('name')}
               >
-                <div className="flex items-center cursor-pointer">
-                  Title{' '}
+                <div className="flex items-center">
+                  Title
                   {sortKey === 'name' &&
                     (sortOrder === 'asc' ? (
                       <ChevronUp className="ml-1 w-4 h-4" />
@@ -202,11 +198,11 @@ export function TaskList(): JSX.Element {
                 </div>
               </th>
               <th
-                className="py-3 px-4 text-left font-medium text-sm w-[120px]"
+                className="py-3 px-4 text-left font-medium text-sm text-gray-800 w-[120px] cursor-pointer"
                 onClick={() => handleSort('status')}
               >
-                <div className="flex items-center cursor-pointer whitespace-nowrap">
-                  Status{' '}
+                <div className="flex items-center">
+                  Status
                   {sortKey === 'status' &&
                     (sortOrder === 'asc' ? (
                       <ChevronUp className="ml-1 w-4 h-4" />
@@ -216,11 +212,11 @@ export function TaskList(): JSX.Element {
                 </div>
               </th>
               <th
-                className="py-3 px-4 text-left font-medium text-sm w-[100px]"
+                className="py-3 px-4 text-left font-medium text-sm text-gray-800 w-[100px] cursor-pointer"
                 onClick={() => handleSort('created_at')}
               >
-                <div className="flex items-center cursor-pointer whitespace-nowrap">
-                  Created{' '}
+                <div className="flex items-center">
+                  Created
                   {sortKey === 'created_at' &&
                     (sortOrder === 'asc' ? (
                       <ChevronUp className="ml-1 w-4 h-4" />
@@ -235,29 +231,27 @@ export function TaskList(): JSX.Element {
             {filteredAndSortedTasks.map((task) => (
               <React.Fragment key={task.id}>
                 <tr
-                  className={`border-b hover:bg-gray-50 cursor-pointer ${expandedTaskId === task.id ? 'bg-gray-50' : ''} group`}
+                  className={`border-b border-gray-300 hover:bg-gray-100 cursor-pointer ${expandedTaskId === task.id ? 'bg-gray-100' : ''} group`}
                   onClick={() => toggleTaskExpand(task.id)}
                 >
                   <td className="py-3 pl-2">
                     <ChevronRight
-                      className={`w-4 h-4 text-gray-400 transition-transform ${expandedTaskId === task.id ? 'rotate-90' : ''}`}
+                      className={`w-4 h-4 text-gray-500 transition-transform ${expandedTaskId === task.id ? 'rotate-90' : ''}`}
                     />
                   </td>
                   <td className="h-12 py-3 pr-4 flex justify-between items-center space-x-4">
-                    <div className="font-medium text-sm">{task.name}</div>
-
-                    {/* Show stop icon if task is active, otherwise show play on hover */}
+                    <div className="font-medium text-sm text-gray-900">{task.name}</div>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         handleToggleTimer(task)
                       }}
-                      className={`p-2 rounded-full transition-all bg-gray-100 hover:bg-gray-200 focus:outline-none ${taskId === task.id ? 'block' : 'group-hover:block hidden'}`}
+                      className={`p-1 rounded-full transition-all bg-gray-200 hover:bg-gray-300 focus:outline-none border border-gray-900 ${taskId === task.id ? 'block' : 'group-hover:block hidden'}`}
                     >
                       {isRunning && taskId === task.id ? (
-                        <StopCircle className="w-5 h-5 text-red-500" />
+                        <img src={stopIcon} alt="Stop Timer" className="w-7 h-7 text-gray-900" />
                       ) : (
-                        <Play className="w-5 h-5 text-green-500" />
+                        <img src={startIcon} alt="Start Timer" className="w-7 h-7 text-gray-900" />
                       )}
                     </button>
                   </td>
@@ -269,26 +263,20 @@ export function TaskList(): JSX.Element {
                         handleStatusChange(task, e.target.value as TaskStatus)
                       }}
                       onClick={(e) => e.stopPropagation()}
-                      className={`px-2 py-1 text-xs font-medium rounded-full border-none focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                        task.status === TaskStatus.TODO
-                          ? 'bg-yellow-100 text-yellow-700 focus:ring-yellow-500'
-                          : task.status === TaskStatus.IN_PROGRESS
-                            ? 'bg-blue-100 text-blue-700 focus:ring-blue-500'
-                            : 'bg-green-100 text-green-700 focus:ring-green-500'
-                      }`}
+                      className="px-2 py-1 text-xs font-medium border border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-500"
                     >
                       <option value={TaskStatus.TODO}>Todo</option>
                       <option value={TaskStatus.IN_PROGRESS}>In Progress</option>
                       <option value={TaskStatus.COMPLETED}>Completed</option>
                     </select>
                   </td>
-                  <td className="py-3 px-4 whitespace-nowrap text-gray-600">
+                  <td className="py-3 px-4 whitespace-nowrap text-gray-700">
                     {task.created_at && new Date(task.created_at).toLocaleDateString()}
                   </td>
                 </tr>
 
                 {expandedTaskId === task.id && (
-                  <tr className="bg-gray-50">
+                  <tr className="bg-gray-100">
                     <td colSpan={4} className="px-10 py-4">
                       <div className="flex justify-between items-start">
                         <div className="flex-1 pr-8">
@@ -303,7 +291,7 @@ export function TaskList(): JSX.Element {
                               e.stopPropagation()
                               handleEditTask(task)
                             }}
-                            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded"
+                            className="p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -312,7 +300,7 @@ export function TaskList(): JSX.Element {
                               e.stopPropagation()
                               handleDeleteTask(task.id)
                             }}
-                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded"
+                            className="p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>

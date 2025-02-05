@@ -65,7 +65,7 @@ export function Sidebar(): JSX.Element {
       </div>
       <div className="flex-1 overflow-hidden flex flex-col">
         <div className="px-4 py-2 flex justify-between items-center">
-          <h2 className="text-sm font-semibold">Projects</h2>
+          <h2 className="text-sm font-semibold text-gray-900">Projects</h2>
           <button
             onClick={() => setIsAddProjectOpen(true)}
             className="text-gray-600 hover:text-gray-900 transition-colors"

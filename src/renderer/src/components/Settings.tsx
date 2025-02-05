@@ -44,14 +44,14 @@ export function Settings(): JSX.Element {
           {projects.map((project) => (
             <li
               key={project.id}
-              className="flex items-center justify-between p-3 bg-white rounded-lg shadow"
+              className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-300"
             >
               {editingProject?.id === project.id ? (
                 <input
                   type="text"
                   value={editingProject.name}
                   onChange={(e) => setEditingProject({ ...editingProject, name: e.target.value })}
-                  className="flex-1 px-2 py-1 mr-2 border rounded"
+                  className="flex-1 px-2 py-1 mr-2 border border-gray-300 rounded focus:outline-none"
                   autoFocus
                 />
               ) : (
@@ -61,21 +61,21 @@ export function Settings(): JSX.Element {
                 {editingProject?.id === project.id ? (
                   <button
                     onClick={() => handleSaveProject(project.id, editingProject.name)}
-                    className="px-2 py-1 text-sm text-white bg-green-500 rounded hover:bg-green-600"
+                    className="px-3 py-1 text-sm text-white bg-black rounded-md hover:bg-gray-900 transition"
                   >
                     Save
                   </button>
                 ) : (
                   <button
                     onClick={() => handleEditProject(project)}
-                    className="p-1 text-gray-600 hover:text-blue-600"
+                    className="p-1 text-gray-600 hover:text-gray-900 transition"
                   >
                     <Edit2 size={18} />
                   </button>
                 )}
                 <button
                   onClick={() => handleDeleteProject(project.id)}
-                  className="p-1 text-gray-600 hover:text-red-600"
+                  className="p-1 text-gray-600 hover:text-gray-900 transition"
                 >
                   <Trash2 size={18} />
                 </button>
