@@ -27,6 +27,10 @@ declare global {
         taskId: number
         projectId: number
       }) => void
+      getHeatmapData: (
+        startDate: string,
+        endDate: string
+      ) => Promise<IResponse<{ date: string; count: number }[]>>
     }
   }
 }

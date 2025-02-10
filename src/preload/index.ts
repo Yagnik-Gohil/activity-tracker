@@ -58,7 +58,14 @@ const api = {
     isRunning: boolean
     taskId: number
     projectId: number
-  }): Promise<void> => ipcRenderer.invoke('timer-state-changed', newState)
+  }): Promise<void> => ipcRenderer.invoke('timer-state-changed', newState),
+
+  // 🚀 New method to fetch heatmap data
+  getHeatmapData: (
+    startDate: string,
+    endDate: string
+  ): Promise<SuccessResponse<{ date: string; count: number }[]> | ErrorResponse> =>
+    ipcRenderer.invoke('get-heatmap-data', { startDate, endDate })
 }
 
 // Use `contextBridge` to expose Electron APIs to the renderer only if context isolation is enabled

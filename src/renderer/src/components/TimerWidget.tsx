@@ -97,12 +97,12 @@ export function TimerWidget(): JSX.Element {
       <div className="flex items-center justify-center space-x-4">
         <button
           onClick={handleToggleTimer}
-          className="p-1 rounded-full transition-all bg-gray-200 hover:bg-gray-300 focus:outline-none border border-gray-900"
+          className="rounded-full transition-all bg-gray-200 hover:bg-gray-300 focus:outline-none border border-gray-900"
         >
           {isRunning ? (
-            <img src={stopIcon} alt="Stop Timer" className="w-8 h-8 text-gray-900" />
+            <img src={stopIcon} alt="Stop Timer" className="w-12 h-12 text-gray-900" />
           ) : (
-            <img src={startIcon} alt="Start Timer" className="w-8 h-8 text-gray-900" />
+            <img src={startIcon} alt="Start Timer" className="w-12 h-12 text-gray-900" />
           )}
         </button>
       </div>

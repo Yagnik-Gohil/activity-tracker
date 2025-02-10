@@ -7,6 +7,7 @@ import { initializeDB } from './db/connection'
 // Import handlers
 import './handlers/projectHandlers'
 import './handlers/taskHandlers'
+import './handlers/dashboardHandlers'
 import { addOrUpdateActivity } from './service/activityService'
 import { resetProjectDurationForToday } from './service/projectService'
 

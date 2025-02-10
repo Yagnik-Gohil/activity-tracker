@@ -246,12 +246,12 @@ export function TaskList(): JSX.Element {
                         e.stopPropagation()
                         handleToggleTimer(task)
                       }}
-                      className={`p-1 rounded-full transition-all bg-gray-200 hover:bg-gray-300 focus:outline-none border border-gray-900 ${taskId === task.id ? 'block' : 'group-hover:block hidden'}`}
+                      className={`rounded-full transition-all bg-gray-200 hover:bg-gray-300 focus:outline-none border border-gray-900 ${taskId === task.id ? 'block' : 'group-hover:block hidden'}`}
                     >
                       {isRunning && taskId === task.id ? (
-                        <img src={stopIcon} alt="Stop Timer" className="w-7 h-7 text-gray-900" />
+                        <img src={stopIcon} alt="Stop Timer" className="w-8 h-8 text-gray-900" />
                       ) : (
-                        <img src={startIcon} alt="Start Timer" className="w-7 h-7 text-gray-900" />
+                        <img src={startIcon} alt="Start Timer" className="w-8 h-8 text-gray-900" />
                       )}
                     </button>
                   </td>
