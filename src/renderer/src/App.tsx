@@ -7,7 +7,34 @@ import { Toaster } from 'react-hot-toast'
 export default function App(): JSX.Element {
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <Toaster position="top-center" reverseOrder={false} />
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          success: {
+            style: {
+              background: '#FFF',
+              color: '#111827',
+              border: '1px solid #111827'
+            },
+            iconTheme: {
+              primary: '#111827',
+              secondary: '#FFF'
+            }
+          },
+          error: {
+            style: {
+              background: '#FFF',
+              color: '#111827',
+              border: '1px solid #111827'
+            },
+            iconTheme: {
+              primary: '#111827',
+              secondary: '#FFF'
+            }
+          }
+        }}
+      />
       <Sidebar />
       <main className="flex-1 overflow-hidden">
         <Routes>
