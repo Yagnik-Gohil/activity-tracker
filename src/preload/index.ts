@@ -7,6 +7,14 @@ import { TaskStatus } from '../main/utils/enum'
 
 // Custom APIs for renderer
 const api = {
+  // 🚀 Fetch the current timer state from the main process
+  getTimerState: (): Promise<{
+    isRunning: boolean
+    taskId: number | null
+    projectId: number | null
+    elapsedTime: number
+  }> => ipcRenderer.invoke('get-timer-state'),
+
   // Fetch all projects
   getProjects: (): Promise<SuccessResponse<Project[]> | ErrorResponse> =>
     ipcRenderer.invoke('get-projects'),
@@ -58,14 +66,14 @@ const api = {
     isRunning: boolean
     taskId: number
     projectId: number
+    taskName: string
+    projectName: string
   }): Promise<void> => ipcRenderer.invoke('timer-state-changed', newState),
 
-  // 🚀 New method to fetch heatmap data
   getHeatmapData: (
-    startDate: string,
-    endDate: string
-  ): Promise<SuccessResponse<{ date: string; count: number }[]> | ErrorResponse> =>
-    ipcRenderer.invoke('get-heatmap-data', { startDate, endDate })
+    year: number
+  ): Promise<SuccessResponse<{ date: string; duration: number }[]> | ErrorResponse> =>
+    ipcRenderer.invoke('get-heatmap-data', { year })
 }
 
 // Use `contextBridge` to expose Electron APIs to the renderer only if context isolation is enabled

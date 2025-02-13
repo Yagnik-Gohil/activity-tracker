@@ -1,14 +1,14 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { RootState } from '@renderer/store/store' // Adjust path as necessary
+import { RootState } from '@renderer/store/store'
 import {
   startTimer,
   stopTimer,
   updateElapsedTime,
-  setTotalTimeToday
-} from '@renderer/store/timerSlice' // Adjust path as necessary
+  setTotalTimeToday,
+  setTimerState
+} from '@renderer/store/timerSlice'
 import { showErrorToast, showSuccessToast } from '@renderer/utils/toastHelper'
-// Import your SVGs as paths or URLs
 import startIcon from '@renderer/utils/play.svg'
 import stopIcon from '@renderer/utils/stop.svg'
 
@@ -23,6 +23,16 @@ export function TimerWidget(): JSX.Element {
   const dispatch = useDispatch()
   const timerState = useSelector((state: RootState) => state.timer)
   const { isRunning, taskName, projectName, elapsedTime, taskId, projectId } = timerState
+
+  // Fetch timer state from Electron main process on load
+  useEffect(() => {
+    const fetchTimerState = async (): Promise<void> => {
+      const response = await window.api.getTimerState()
+      console.log(response)
+      dispatch(setTimerState(response))
+    }
+    fetchTimerState()
+  }, [dispatch])
 
   // Handle start/stop of the timer
   const handleToggleTimer = (): void => {
@@ -58,7 +68,9 @@ export function TimerWidget(): JSX.Element {
       window.api.updateTimerState({
         isRunning, // true when the timer starts, false when it stops
         taskId, // ID of the task
-        projectId: Number(projectId) // ID of the project
+        projectId: Number(projectId), // ID of the project
+        taskName,
+        projectName
       })
     }
   }, [isRunning, taskId, projectId]) // This will re-trigger the effect when the timer state changes

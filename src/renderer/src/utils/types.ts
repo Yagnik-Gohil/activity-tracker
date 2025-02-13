@@ -1,3 +1,4 @@
+import { TimerState } from '@renderer/store/timerSlice'
 import { IProject, ITask, IResponse, TaskStatus } from './interface'
 
 declare global {
@@ -26,11 +27,11 @@ declare global {
         isRunning: boolean
         taskId: number
         projectId: number
+        taskName: string | null
+        projectName: string | null
       }) => void
-      getHeatmapData: (
-        startDate: string,
-        endDate: string
-      ) => Promise<IResponse<{ date: string; count: number }[]>>
+      getHeatmapData: (year: number) => Promise<IResponse<{ date: string; duration: number }[]>>
+      getTimerState: () => Promise<TimerState>
     }
   }
 }

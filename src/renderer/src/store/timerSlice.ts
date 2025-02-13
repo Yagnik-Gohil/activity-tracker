@@ -62,7 +62,12 @@ const timerSlice = createSlice({
 
     // New action to set the total elapsed time from today's data
     setTotalTimeToday: (state, action: PayloadAction<number>) => {
-      state.elapsedTime = action.payload // Set the total time spent today in seconds
+      state.elapsedTime = action.payload
+    },
+
+    // ✅ **New Action to Set Timer State from Backend**
+    setTimerState: (state, action: PayloadAction<TimerState>) => {
+      return { ...state, ...action.payload }
     }
   }
 })
@@ -73,7 +78,8 @@ export const {
   updateElapsedTime,
   resetElapsedTime,
   resetTimer,
-  setTotalTimeToday
+  setTotalTimeToday,
+  setTimerState // ✅ Exporting the new action
 } = timerSlice.actions
 
 export default timerSlice.reducer

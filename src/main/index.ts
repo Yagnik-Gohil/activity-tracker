@@ -18,6 +18,8 @@ let timerInterval: NodeJS.Timeout | null = null // Interval reference
 const currentTimerState = {
   taskId: null as number | null,
   projectId: null as number | null,
+  taskName: null as string | null,
+  projectName: null as string | null,
   isRunning: false,
   elapsedTime: 0 // Time in seconds
 }
@@ -67,9 +69,16 @@ const stopElapsedTimeCounter = (): void => {
 /**
  * Starts the timer for a specific task and project.
  */
-const startTimer = (taskId: number, projectId: number): void => {
+const startTimer = (
+  taskId: number,
+  projectId: number,
+  taskName: string,
+  projectName: string
+): void => {
   currentTimerState.taskId = taskId
   currentTimerState.projectId = projectId
+  currentTimerState.taskName = taskName
+  currentTimerState.projectName = projectName
   currentTimerState.isRunning = true
   currentTimerState.elapsedTime = 0
 
@@ -170,14 +179,18 @@ app.on('window-all-closed', () => {
 })
 
 ipcMain.handle('timer-state-changed', async (_, newState) => {
-  const { isRunning, taskId, projectId } = newState
+  const { isRunning, taskId, projectId, taskName, projectName } = newState
 
   if (isRunning) {
     console.log('✅ Starting timer...')
     await stopTimer() // Ensure that we stop any running timer first
-    startTimer(taskId, projectId) // Start the new timer
+    startTimer(taskId, projectId, taskName, projectName) // Start the new timer
   } else {
     console.log('⏹ Stopping timer...')
     await stopTimer() // Stop the current timer if it's running
   }
+})
+// Handle fetching the current timer state
+ipcMain.handle('get-timer-state', async () => {
+  return currentTimerState
 })
