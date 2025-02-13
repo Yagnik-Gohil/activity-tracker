@@ -79,17 +79,19 @@ export function Analytics(): JSX.Element {
       {/* Display total hours spent for selected year */}
       <p className="text-gray-600 mb-1 flex items-center justify-between">
         {totalHours} hours spent in {selectedYear}.
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
-          className="border border-gray-300 rounded px-3 py-1"
-        >
-          {yearlyData.map((item) => (
-            <option key={item.year} value={item.year}>
-              {item.year}
-            </option>
-          ))}
-        </select>
+        {yearlyData.length > 0 && (
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="border border-gray-300 rounded px-3 py-1"
+          >
+            {yearlyData.map((item) => (
+              <option key={item.year} value={item.year}>
+                {item.year}
+              </option>
+            ))}
+          </select>
+        )}
       </p>
 
       <div className="bg-white rounded-lg p-4 pb-0 border border-gray-300">
