@@ -33,6 +33,9 @@ declare global {
       getHeatmapData: (year: string) => Promise<IResponse<{ date: string; duration: number }[]>>
       getTimerState: () => Promise<TimerState>
       getYearlyHoursSpent: () => Promise<IResponse<{ year: string; hours: number }[]>>
+      getWeeklyActivityData: () => Promise<
+        IResponse<{ day: string; hours: string; value: number }[]>
+      >
     }
   }
 }

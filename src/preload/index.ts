@@ -77,7 +77,11 @@ const api = {
 
   getYearlyHoursSpent: (): Promise<
     SuccessResponse<{ year: number; hours: number }[]> | ErrorResponse
-  > => ipcRenderer.invoke('get-yearly-hours-spent')
+  > => ipcRenderer.invoke('get-yearly-hours-spent'),
+
+  getWeeklyActivityData: (): Promise<
+    SuccessResponse<{ day: string; hours: string; value: number }[]> | ErrorResponse
+  > => ipcRenderer.invoke('get-weekly-data')
 }
 
 // Use `contextBridge` to expose Electron APIs to the renderer only if context isolation is enabled
