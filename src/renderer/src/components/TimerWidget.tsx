@@ -28,7 +28,6 @@ export function TimerWidget(): JSX.Element {
   useEffect(() => {
     const fetchTimerState = async (): Promise<void> => {
       const response = await window.api.getTimerState()
-      console.log(response)
       dispatch(setTimerState(response))
     }
     fetchTimerState()

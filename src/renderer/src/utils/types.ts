@@ -30,8 +30,9 @@ declare global {
         taskName: string | null
         projectName: string | null
       }) => void
-      getHeatmapData: (year: number) => Promise<IResponse<{ date: string; duration: number }[]>>
+      getHeatmapData: (year: string) => Promise<IResponse<{ date: string; duration: number }[]>>
       getTimerState: () => Promise<TimerState>
+      getYearlyHoursSpent: () => Promise<IResponse<{ year: string; hours: number }[]>>
     }
   }
 }

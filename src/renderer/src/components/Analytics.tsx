@@ -8,19 +8,42 @@ interface HeatmapData {
   duration: number // Duration in seconds
 }
 
+interface YearlyData {
+  year: string
+  hours: number
+}
+
 export function Analytics(): JSX.Element {
   const [heatmapData, setHeatmapData] = useState<HeatmapData[]>([])
+  const [yearlyData, setYearlyData] = useState<YearlyData[]>([])
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString())
+  const [totalHours, setTotalHours] = useState<number>(0)
 
+  // Fetch yearly data once
+  useEffect(() => {
+    const fetchYearlyData = async (): Promise<void> => {
+      const response = await window.api.getYearlyHoursSpent()
+      setYearlyData(response.data)
+      setSelectedYear(response.data[0]?.year || new Date().getFullYear().toString()) // Default to latest year
+      setTotalHours(response.data[0]?.hours || 0)
+    }
+    fetchYearlyData()
+  }, [])
+
+  // Fetch heatmap data when selectedYear changes
   useEffect(() => {
     const fetchHeatmapData = async (): Promise<void> => {
-      const currentYear = new Date().getFullYear()
-      const response = await window.api.getHeatmapData(currentYear)
+      if (!selectedYear) return
+      const response = await window.api.getHeatmapData(selectedYear)
       setHeatmapData(response.data)
+
+      // Update total hours for the selected year
+      const yearData = yearlyData.find((item) => item.year === selectedYear)
+      setTotalHours(yearData?.hours || 0)
     }
 
     fetchHeatmapData()
-  }, [])
-
+  }, [selectedYear, yearlyData])
   // Function to format seconds into hours and minutes
   const formatDuration = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600)
@@ -52,14 +75,28 @@ export function Analytics(): JSX.Element {
   }
 
   return (
-    <div className="p-6">
-      <p className="text-gray-600 mb-6">Task activity for {new Date().getFullYear()}.</p>
+    <div>
+      {/* Display total hours spent for selected year */}
+      <p className="text-gray-600 mb-1 flex items-center justify-between">
+        {totalHours} hours spent in {selectedYear}.
+        <select
+          value={selectedYear}
+          onChange={(e) => setSelectedYear(e.target.value)}
+          className="border border-gray-300 rounded px-3 py-1"
+        >
+          {yearlyData.map((item) => (
+            <option key={item.year} value={item.year}>
+              {item.year}
+            </option>
+          ))}
+        </select>
+      </p>
 
       <div className="bg-white rounded-lg p-4 pb-0 border border-gray-300">
         <CalendarHeatmap
           showWeekdayLabels={true}
-          startDate={new Date(new Date().getFullYear(), 0, 1)}
-          endDate={new Date(new Date().getFullYear(), 11, 31)}
+          startDate={new Date(parseInt(selectedYear), 0, 1)}
+          endDate={new Date(parseInt(selectedYear), 11, 31)}
           values={heatmapData}
           gutterSize={2}
           classForValue={(value) => {
