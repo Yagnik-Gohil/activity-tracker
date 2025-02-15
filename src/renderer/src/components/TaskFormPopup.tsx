@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { ITask, TaskStatus } from '@renderer/utils/interface'
+import { CustomSelect } from './Select'
 
 interface TaskFormPopupProps {
   isOpen: boolean
@@ -63,15 +64,16 @@ export function TaskFormPopup({
           {!task && (
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">Status</label>
-              <select
+              <CustomSelect
                 value={status}
-                onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-              >
-                <option value={TaskStatus.TODO}>Todo</option>
-                <option value={TaskStatus.IN_PROGRESS}>In Progress</option>
-                <option value={TaskStatus.COMPLETED}>Completed</option>
-              </select>
+                onChange={setStatus}
+                options={[
+                  { label: 'Todo', value: TaskStatus.TODO },
+                  { label: 'In Progress', value: TaskStatus.IN_PROGRESS },
+                  { label: 'Completed', value: TaskStatus.COMPLETED }
+                ]}
+                className="w-full"
+              />
             </div>
           )}
 

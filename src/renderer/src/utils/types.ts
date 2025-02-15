@@ -36,6 +36,7 @@ declare global {
       getWeeklyActivityData: () => Promise<
         IResponse<{ day: string; hours: string; value: number }[]>
       >
+      getWeeklyActivity: () => Promise<IResponse<{ day: string; value: number }[]>>
     }
   }
 }

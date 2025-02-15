@@ -11,6 +11,7 @@ import { startTimer, stopTimer } from '@renderer/store/timerSlice'
 import startIcon from '@renderer/utils/play.svg'
 import stopIcon from '@renderer/utils/stop.svg'
 import { ConfirmPopup } from '@renderer/components/ConfirmPopup'
+import { CustomSelect } from '@renderer/components/Select'
 
 type SortKey = 'name' | 'created_at' | 'status'
 
@@ -158,7 +159,7 @@ export function TaskList(): JSX.Element {
           <h1 className="text-2xl font-semibold">Tasks for {location.state}</h1>
           <button
             onClick={handleAddTask}
-            className="flex items-center gap-2 h-10 px-4 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-900 transition"
+            className="flex items-center w-32 gap-2 h-10 px-4 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-900 transition"
           >
             <Plus className="w-4 h-4" />
             New Task
@@ -173,16 +174,17 @@ export function TaskList(): JSX.Element {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <select
-            className="h-10 px-3 border border-gray-400 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-gray-500"
+          <CustomSelect
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">All Status</option>
-            <option value={TaskStatus.TODO}>Todo</option>
-            <option value={TaskStatus.IN_PROGRESS}>In Progress</option>
-            <option value={TaskStatus.COMPLETED}>Completed</option>
-          </select>
+            onChange={setStatusFilter}
+            options={[
+              { label: 'All Status', value: '' },
+              { label: 'Todo', value: TaskStatus.TODO },
+              { label: 'In Progress', value: TaskStatus.IN_PROGRESS },
+              { label: 'Completed', value: TaskStatus.COMPLETED }
+            ]}
+            className="w-32"
+          />
         </div>
       </div>
 
@@ -205,6 +207,7 @@ export function TaskList(): JSX.Element {
                     ))}
                 </div>
               </th>
+              <th className="w-[50px]"></th>
               <th
                 className="py-3 px-4 text-left font-medium text-sm text-gray-800 w-[120px] cursor-pointer"
                 onClick={() => handleSort('status')}
@@ -247,8 +250,10 @@ export function TaskList(): JSX.Element {
                       className={`w-4 h-4 text-gray-500 transition-transform ${expandedTaskId === task.id ? 'rotate-90' : ''}`}
                     />
                   </td>
-                  <td className="h-12 py-3 pr-4 flex justify-between items-center space-x-4">
+                  <td className="h-16 py-3 pr-4 flex justify-between items-center space-x-4">
                     <div className="font-medium text-sm text-gray-900">{task.name}</div>
+                  </td>
+                  <td className="py-3 whitespace-nowrap">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
@@ -264,19 +269,16 @@ export function TaskList(): JSX.Element {
                     </button>
                   </td>
                   <td className="py-3 px-4 whitespace-nowrap">
-                    <select
+                    <CustomSelect
                       value={task.status}
-                      onChange={(e) => {
-                        e.stopPropagation()
-                        handleStatusChange(task, e.target.value as TaskStatus)
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="px-2 py-1 text-xs font-medium border border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    >
-                      <option value={TaskStatus.TODO}>Todo</option>
-                      <option value={TaskStatus.IN_PROGRESS}>In Progress</option>
-                      <option value={TaskStatus.COMPLETED}>Completed</option>
-                    </select>
+                      onChange={(value) => handleStatusChange(task, value as TaskStatus)}
+                      options={[
+                        { label: 'Todo', value: TaskStatus.TODO },
+                        { label: 'In Progress', value: TaskStatus.IN_PROGRESS },
+                        { label: 'Completed', value: TaskStatus.COMPLETED }
+                      ]}
+                      className="w-32 text-xs"
+                    />
                   </td>
                   <td className="py-3 px-4 whitespace-nowrap text-gray-700">
                     {task.created_at && new Date(task.created_at).toLocaleDateString()}
@@ -285,7 +287,7 @@ export function TaskList(): JSX.Element {
 
                 {expandedTaskId === task.id && (
                   <tr className="bg-gray-100">
-                    <td colSpan={4} className="px-10 py-4">
+                    <td colSpan={5} className="px-10 py-4">
                       <div className="flex justify-between items-start">
                         <div className="flex-1 pr-8">
                           <h4 className="text-sm font-medium text-gray-900 mb-1">Description</h4>

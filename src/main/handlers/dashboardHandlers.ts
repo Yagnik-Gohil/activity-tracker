@@ -1,7 +1,8 @@
 import { ipcMain } from 'electron'
 import {
   getActivityHeatmapData,
-  getWeeklyActivityData,
+  getWeeklyActivity,
+  getWeeklyTimeSpentData,
   getYearlyHoursSpent
 } from '../service/dashboardService'
 import { successResponse, errorResponse } from '../utils/responseHandler'
@@ -31,10 +32,20 @@ ipcMain.handle('get-yearly-hours-spent', async () => {
 
 ipcMain.handle('get-weekly-data', async () => {
   try {
-    const data = await getWeeklyActivityData()
+    const data = await getWeeklyTimeSpentData()
     return successResponse('Weekly data fetched successfully', data)
   } catch (error) {
     console.error('❌ Error fetching Weekly data:', error)
     return errorResponse('Failed to fetch Weekly data')
+  }
+})
+
+ipcMain.handle('get-weekly-activity', async () => {
+  try {
+    const data = await getWeeklyActivity()
+    return successResponse('Weekly activity fetched successfully', data)
+  } catch (error) {
+    console.error('❌ Error fetching Weekly activity:', error)
+    return errorResponse('Failed to fetch Weekly activity')
   }
 })
