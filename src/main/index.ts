@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, powerMonitor } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -21,7 +21,23 @@ const currentTimerState = {
   taskName: null as string | null,
   projectName: null as string | null,
   isRunning: false,
-  elapsedTime: 0 // Time in seconds
+  elapsedTime: 0, // Total active time in seconds
+  idleTime: 0 // Idle time in seconds
+}
+
+/**
+ * Checks idle time every second and updates idleTime counter.
+ */
+const trackIdleTime = (): void => {
+  setInterval(() => {
+    if (!currentTimerState.isRunning) return
+
+    const idleSeconds = powerMonitor.getSystemIdleTime()
+
+    if (idleSeconds >= 10) {
+      currentTimerState.idleTime += 1
+    }
+  }, 1000) // Check every second
 }
 
 /**
@@ -33,11 +49,13 @@ const startCronJob = (): void => {
       await addOrUpdateActivity(
         currentTimerState.taskId,
         currentTimerState.projectId,
-        currentTimerState.elapsedTime
+        currentTimerState.elapsedTime,
+        currentTimerState.idleTime
       )
 
-      // Reset elapsed time after saving
+      // Reset elapsed and idle time after saving
       currentTimerState.elapsedTime = 0
+      currentTimerState.idleTime = 0
     }
   }, 600000) // 10 minutes
 }
@@ -51,13 +69,15 @@ const startElapsedTimeCounter = (): void => {
   timerInterval = setInterval(() => {
     if (currentTimerState.isRunning) {
       currentTimerState.elapsedTime += 1
-      console.log(`⏳ Elapsed time: ${currentTimerState.elapsedTime} seconds`)
+      console.log(
+        `⏳ Elapsed: ${currentTimerState.elapsedTime}s | 💤 Idle: ${currentTimerState.idleTime}s`
+      )
     }
-  }, 1000) // Increment every second
+  }, 1000)
 }
 
 /**
- * Clears the interval to stop counting elapsed time.
+ * Clears the interval to stop counting elapsed and idle time.
  */
 const stopElapsedTimeCounter = (): void => {
   if (timerInterval) {
@@ -81,6 +101,7 @@ const startTimer = (
   currentTimerState.projectName = projectName
   currentTimerState.isRunning = true
   currentTimerState.elapsedTime = 0
+  currentTimerState.idleTime = 0
 
   startElapsedTimeCounter()
 
@@ -98,7 +119,8 @@ const stopTimer = async (): Promise<void> => {
   await addOrUpdateActivity(
     currentTimerState.taskId,
     currentTimerState.projectId,
-    currentTimerState.elapsedTime
+    currentTimerState.elapsedTime,
+    currentTimerState.idleTime
   )
 
   currentTimerState.isRunning = false
@@ -156,6 +178,7 @@ app.whenReady().then(async () => {
     console.log('✅ Database initialized successfully')
     await resetProjectDurationForToday()
     startCronJob() // Start activity tracking
+    trackIdleTime() // Start idle tracking
   } catch (error) {
     console.error('❌ Database initialization failed:', error)
   }
@@ -187,9 +210,10 @@ ipcMain.handle('timer-state-changed', async (_, newState) => {
     startTimer(taskId, projectId, taskName, projectName) // Start the new timer
   } else {
     console.log('⏹ Stopping timer...')
-    await stopTimer() // Stop the current timer if it's running
+    await stopTimer()
   }
 })
+
 // Handle fetching the current timer state
 ipcMain.handle('get-timer-state', async () => {
   const totalTimeToday = await getTotalTimeToday()

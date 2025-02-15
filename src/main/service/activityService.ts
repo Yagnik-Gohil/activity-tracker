@@ -12,7 +12,8 @@ import { Project } from '../db/entities/Project'
 export const addOrUpdateActivity = async (
   taskId: number,
   projectId: number,
-  timeSpent: number
+  timeSpent: number,
+  idleTime: number
 ): Promise<Activity> => {
   const activityRepo = AppDataSource.getRepository(Activity)
   const projectRepo = AppDataSource.getRepository(Project)
@@ -46,6 +47,7 @@ export const addOrUpdateActivity = async (
   if (existingActivity) {
     // If an activity exists for today, update the duration
     existingActivity.duration += timeSpent
+    existingActivity.idle_duration += idleTime
     const updatedActivity = await activityRepo.save(existingActivity)
 
     // Update the total time spent in the project today
