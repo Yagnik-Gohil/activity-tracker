@@ -34,7 +34,7 @@ export function Sidebar(): JSX.Element {
   }
 
   return (
-    <div className="w-80 border-r h-full flex flex-col bg-white">
+    <div className="w-80 xl:w-96 border-r h-full flex flex-col bg-white">
       <div className="p-4 space-y-4">
         <TimerWidget />
         <Link
