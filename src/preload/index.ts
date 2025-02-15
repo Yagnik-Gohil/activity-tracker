@@ -10,9 +10,11 @@ const api = {
   // 🚀 Fetch the current timer state from the main process
   getTimerState: (): Promise<{
     isRunning: boolean
-    taskId: number | null
     projectId: number | null
-    elapsedTime: number
+    taskId: number | null
+    taskName: string | null
+    projectName: string | null
+    elapsedTime: number // Store the time passed in seconds
   }> => ipcRenderer.invoke('get-timer-state'),
 
   // Fetch all projects

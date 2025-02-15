@@ -1,13 +1,7 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '@renderer/store/store'
-import {
-  startTimer,
-  stopTimer,
-  updateElapsedTime,
-  setTotalTimeToday,
-  setTimerState
-} from '@renderer/store/timerSlice'
+import { startTimer, stopTimer, updateElapsedTime, setTimerState } from '@renderer/store/timerSlice'
 import { showErrorToast, showSuccessToast } from '@renderer/utils/toastHelper'
 import startIcon from '@renderer/utils/play.svg'
 import stopIcon from '@renderer/utils/stop.svg'
@@ -28,6 +22,7 @@ export function TimerWidget(): JSX.Element {
   useEffect(() => {
     const fetchTimerState = async (): Promise<void> => {
       const response = await window.api.getTimerState()
+      console.log(response)
       dispatch(setTimerState(response))
     }
     fetchTimerState()
@@ -89,14 +84,6 @@ export function TimerWidget(): JSX.Element {
       if (intervalId) clearInterval(intervalId)
     }
   }, [isRunning, dispatch])
-
-  // Fetch total time spent today when the component mounts
-  useEffect(() => {
-    window.api.getTotalTimeToday().then((response) => {
-      // Dispatch the action to set the time spent today in Redux
-      dispatch(setTotalTimeToday(response.data))
-    })
-  }, [dispatch])
 
   return (
     <div className="bg-gray-50 p-6 rounded-lg border flex flex-col items-center justify-center space-y-4">

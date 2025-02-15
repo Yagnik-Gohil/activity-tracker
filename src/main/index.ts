@@ -9,7 +9,7 @@ import './handlers/projectHandlers'
 import './handlers/taskHandlers'
 import './handlers/dashboardHandlers'
 import { addOrUpdateActivity } from './service/activityService'
-import { resetProjectDurationForToday } from './service/projectService'
+import { getTotalTimeToday, resetProjectDurationForToday } from './service/projectService'
 
 let mainWindow: BrowserWindow | null = null
 let timerInterval: NodeJS.Timeout | null = null // Interval reference
@@ -192,5 +192,10 @@ ipcMain.handle('timer-state-changed', async (_, newState) => {
 })
 // Handle fetching the current timer state
 ipcMain.handle('get-timer-state', async () => {
-  return currentTimerState
+  const totalTimeToday = await getTotalTimeToday()
+  const { elapsedTime, ...data } = currentTimerState
+  return {
+    elapsedTime: elapsedTime + totalTimeToday,
+    ...data
+  }
 })
