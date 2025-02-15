@@ -34,7 +34,7 @@ export function Dashboard(): JSX.Element {
           ))}
         </nav>
       </div>
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-4">
         {activeTab === 'analytics' && <Analytics />}
         {activeTab === 'settings' && <Settings />}
       </div>

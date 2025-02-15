@@ -10,6 +10,7 @@ import { startTimer, stopTimer } from '@renderer/store/timerSlice'
 // Import your SVGs as paths or URLs
 import startIcon from '@renderer/utils/play.svg'
 import stopIcon from '@renderer/utils/stop.svg'
+import { ConfirmPopup } from '@renderer/components/ConfirmPopup'
 
 type SortKey = 'name' | 'created_at' | 'status'
 
@@ -27,6 +28,10 @@ export function TaskList(): JSX.Element {
   const [editingTask, setEditingTask] = useState<ITask | null>(null)
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false)
   const { taskId, isRunning } = useSelector((state: RootState) => state.timer)
+  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; taskId: number | null }>({
+    isOpen: false,
+    taskId: null
+  })
 
   useEffect(() => {
     // Fetch tasks from API for the current project
@@ -95,15 +100,18 @@ export function TaskList(): JSX.Element {
   }
 
   const handleDeleteTask = (id: number): void => {
-    taskAPI
-      .deleteTask(id)
-      .then((result) => {
-        if (result) {
-          setTasks(tasks.filter((task) => task.id !== id))
-          setExpandedTaskId(null)
-        }
-      })
-      .catch((err) => console.error('Failed to delete task:', err))
+    setConfirmDelete({ isOpen: true, taskId: id })
+  }
+
+  const confirmDeletion = async (): Promise<void> => {
+    if (confirmDelete.taskId !== null) {
+      const result = await taskAPI.deleteTask(confirmDelete.taskId)
+      if (result) {
+        setTasks(tasks.filter((task) => task.id !== confirmDelete.taskId))
+        setExpandedTaskId(null)
+      }
+    }
+    setConfirmDelete({ isOpen: false, taskId: null })
   }
 
   const handleSaveTask = (taskData: Omit<ITask, 'id' | 'created_at'>): void => {
@@ -323,6 +331,14 @@ export function TaskList(): JSX.Element {
           onClose={() => setIsTaskFormOpen(false)}
         />
       )}
+
+      {/* Confirmation Popup */}
+      <ConfirmPopup
+        isOpen={confirmDelete.isOpen}
+        message="Are you sure you want to delete this task? This action cannot be undone."
+        onConfirm={confirmDeletion}
+        onCancel={() => setConfirmDelete({ isOpen: false, taskId: null })}
+      />
     </div>
   )
 }

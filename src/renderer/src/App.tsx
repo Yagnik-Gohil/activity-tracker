@@ -16,10 +16,6 @@ export default function App(): JSX.Element {
               background: '#FFF',
               color: '#111827',
               border: '1px solid #111827'
-            },
-            iconTheme: {
-              primary: '#111827',
-              secondary: '#FFF'
             }
           },
           error: {
@@ -27,10 +23,6 @@ export default function App(): JSX.Element {
               background: '#FFF',
               color: '#111827',
               border: '1px solid #111827'
-            },
-            iconTheme: {
-              primary: '#111827',
-              secondary: '#FFF'
             }
           }
         }}

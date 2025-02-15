@@ -2,10 +2,17 @@ import { useState, useEffect } from 'react'
 import { Edit2, Trash2 } from 'lucide-react'
 import { IProject } from '@renderer/utils/interface'
 import projectAPI from '@renderer/api/projectAPI'
+import { ConfirmPopup } from '@renderer/components/ConfirmPopup'
 
 export function Settings(): JSX.Element {
   const [projects, setProjects] = useState<IProject[]>([])
   const [editingProject, setEditingProject] = useState<IProject | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; projectId: number | null }>(
+    {
+      isOpen: false,
+      projectId: null
+    }
+  )
 
   useEffect(() => {
     fetchProjects()
@@ -28,16 +35,23 @@ export function Settings(): JSX.Element {
     }
   }
 
-  const handleDeleteProject = async (id: number): Promise<void> => {
-    const isDeleted = await projectAPI.deleteProject(id)
-    if (isDeleted) {
-      setProjects(projects.filter((p) => p.id !== id))
+  const handleDeleteClick = (id: number): void => {
+    setConfirmDelete({ isOpen: true, projectId: id })
+  }
+
+  const confirmDeletion = async (): Promise<void> => {
+    if (confirmDelete.projectId !== null) {
+      const isDeleted = await projectAPI.deleteProject(confirmDelete.projectId)
+      if (isDeleted) {
+        setProjects(projects.filter((p) => p.id !== confirmDelete.projectId))
+        window.location.reload()
+      }
     }
+    setConfirmDelete({ isOpen: false, projectId: null })
   }
 
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-4">Settings</h2>
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Projects</h3>
         <ul className="space-y-2">
@@ -74,7 +88,7 @@ export function Settings(): JSX.Element {
                   </button>
                 )}
                 <button
-                  onClick={() => handleDeleteProject(project.id)}
+                  onClick={() => handleDeleteClick(project.id)}
                   className="p-1 text-gray-600 hover:text-gray-900 transition"
                 >
                   <Trash2 size={18} />
@@ -84,6 +98,14 @@ export function Settings(): JSX.Element {
           ))}
         </ul>
       </div>
+
+      {/* Confirmation Popup */}
+      <ConfirmPopup
+        isOpen={confirmDelete.isOpen}
+        message="Are you sure you want to delete this project? This action cannot be undone."
+        onConfirm={confirmDeletion}
+        onCancel={() => setConfirmDelete({ isOpen: false, projectId: null })}
+      />
     </div>
   )
 }
