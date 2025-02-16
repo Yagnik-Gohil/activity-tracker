@@ -52,46 +52,46 @@ export const getWeeklyTimeSpentData = async (): Promise<
 
   return await activityRepo.query(`
       WITH days AS (
-        SELECT 'Sunday' AS day UNION ALL
-        SELECT 'Monday' UNION ALL
+        SELECT 'Monday' AS day UNION ALL
         SELECT 'Tuesday' UNION ALL
         SELECT 'Wednesday' UNION ALL
         SELECT 'Thursday' UNION ALL
         SELECT 'Friday' UNION ALL
-        SELECT 'Saturday'
+        SELECT 'Saturday' UNION ALL
+        SELECT 'Sunday'
       ),
       activity_data AS (
         SELECT 
           CASE strftime('%w', activity.date)
-            WHEN '0' THEN 'Sunday'
             WHEN '1' THEN 'Monday'
             WHEN '2' THEN 'Tuesday'
             WHEN '3' THEN 'Wednesday'
             WHEN '4' THEN 'Thursday'
             WHEN '5' THEN 'Friday'
             WHEN '6' THEN 'Saturday'
+            WHEN '0' THEN 'Sunday'
           END AS day,
           printf('%02d:%02d', SUM(activity.duration) / 3600, (SUM(activity.duration) % 3600) / 60) AS hours,
-          ROUND(SUM(activity.duration) / 3600.0, 2) AS value  -- Convert seconds to hours as decimal
+          ROUND(SUM(activity.duration) / 3600.0, 2) AS value  
         FROM activity
-        WHERE activity.date BETWEEN DATE('now', 'weekday 0', '-6 days') AND DATE('now', 'weekday 0')
+        WHERE activity.date BETWEEN DATE('now', 'weekday 1', '-7 days') AND DATE('now', 'weekday 1', '-1 day')
         GROUP BY day
       )
       SELECT 
         days.day, 
         COALESCE(activity_data.hours, '00:00') AS hours,
-        COALESCE(activity_data.value, 0) AS value  -- Ensure missing days have 0 hours
+        COALESCE(activity_data.value, 0) AS value  
       FROM days
       LEFT JOIN activity_data ON days.day = activity_data.day
       ORDER BY 
         CASE days.day 
-          WHEN 'Sunday' THEN 0 
-          WHEN 'Monday' THEN 1 
-          WHEN 'Tuesday' THEN 2 
-          WHEN 'Wednesday' THEN 3 
-          WHEN 'Thursday' THEN 4 
-          WHEN 'Friday' THEN 5 
-          WHEN 'Saturday' THEN 6 
+          WHEN 'Monday' THEN 0 
+          WHEN 'Tuesday' THEN 1 
+          WHEN 'Wednesday' THEN 2 
+          WHEN 'Thursday' THEN 3 
+          WHEN 'Friday' THEN 4 
+          WHEN 'Saturday' THEN 5 
+          WHEN 'Sunday' THEN 6 
         END;
   `)
 }
@@ -101,29 +101,29 @@ export const getWeeklyActivity = async (): Promise<{ day: string; value: number 
 
   return await activityRepo.query(`
       WITH days AS (
-        SELECT 'Sunday' AS day UNION ALL
-        SELECT 'Monday' UNION ALL
+        SELECT 'Monday' AS day UNION ALL
         SELECT 'Tuesday' UNION ALL
         SELECT 'Wednesday' UNION ALL
         SELECT 'Thursday' UNION ALL
         SELECT 'Friday' UNION ALL
-        SELECT 'Saturday'
+        SELECT 'Saturday' UNION ALL
+        SELECT 'Sunday'
       ),
       activity_data AS (
         SELECT 
           CASE strftime('%w', activity.date)
-            WHEN '0' THEN 'Sunday'
             WHEN '1' THEN 'Monday'
             WHEN '2' THEN 'Tuesday'
             WHEN '3' THEN 'Wednesday'
             WHEN '4' THEN 'Thursday'
             WHEN '5' THEN 'Friday'
             WHEN '6' THEN 'Saturday'
+            WHEN '0' THEN 'Sunday'
           END AS day,
           SUM(activity.duration) AS total_active_seconds,
           SUM(activity.idle_duration) AS total_idle_seconds
         FROM activity
-        WHERE activity.date BETWEEN DATE('now', 'weekday 0', '-6 days') AND DATE('now', 'weekday 0')
+        WHERE activity.date BETWEEN DATE('now', 'weekday 1', '-7 days') AND DATE('now', 'weekday 1', '-1 day')
         GROUP BY day
       )
       SELECT 
@@ -136,13 +136,13 @@ export const getWeeklyActivity = async (): Promise<{ day: string; value: number 
       LEFT JOIN activity_data ON days.day = activity_data.day
       ORDER BY 
         CASE days.day 
-          WHEN 'Sunday' THEN 0 
-          WHEN 'Monday' THEN 1 
-          WHEN 'Tuesday' THEN 2 
-          WHEN 'Wednesday' THEN 3 
-          WHEN 'Thursday' THEN 4 
-          WHEN 'Friday' THEN 5 
-          WHEN 'Saturday' THEN 6 
+          WHEN 'Monday' THEN 0 
+          WHEN 'Tuesday' THEN 1 
+          WHEN 'Wednesday' THEN 2 
+          WHEN 'Thursday' THEN 3 
+          WHEN 'Friday' THEN 4 
+          WHEN 'Saturday' THEN 5 
+          WHEN 'Sunday' THEN 6 
         END;
   `)
 }
